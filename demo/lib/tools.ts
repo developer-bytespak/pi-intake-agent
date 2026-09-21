@@ -292,7 +292,7 @@ async function createMatter(req: ToolRequest): Promise<ToolResponse> {
     score,
     stage,
     assignedTo: assigned.id,
-    tags: [type.name, SOURCE_LABEL[source], ...(isAfterHours() ? ["After hours"] : [])],
+    tags: [type.name, SOURCE_LABEL[source]],
     source,
     adverseParty: adverse,
   });
