@@ -1,0 +1,67 @@
+{
+  "agent_name": "harbor-point-demo-intake",
+  "response_engine": {
+    "type": "conversation-flow",
+    "conversation_flow_id": "<CONVERSATION_FLOW_ID>"
+  },
+  "voice_id": "<VOICE_ID>",
+  "voice_speed": 1,
+  "language": "en-US",
+  "data_storage_setting": "everything",
+  "data_storage_retention_days": 30,
+  "opt_in_signed_url": true,
+  "signed_url_expiration_ms": 3600000,
+  "webhook_url": "https://<DEMO_HOST>/api/retell/post-call",
+  "post_call_analysis_data": [
+    {
+      "type": "enum",
+      "name": "outcome",
+      "description": "What actually happened on this call. retainer_sent when a matter was opened and the retainer agreement was sent. matter_opened when a matter was created but no retainer went out, for example an attorney review. declined when the lead was disqualified by the deadline, prior counsel or no liable party. referred when the case type is one the firm refers to a partner. conflict_hold when the conflict check stopped the intake and a task was opened. transferred when the caller was handed to a person. message_taken when the assistant took a name and number for a call back. spam when the call was a sales pitch, a recorded message or a robocall. abandoned when the caller hung up before any of the above.",
+      "choices": ["retainer_sent", "matter_opened", "declined", "referred", "conflict_hold", "transferred", "message_taken", "spam", "abandoned"]
+    },
+    {
+      "type": "enum",
+      "name": "qualification",
+      "description": "The qualify_lead result on this call: qualified, review, disqualified, referral, or unknown if the call ended before qualification.",
+      "choices": ["qualified", "review", "disqualified", "referral", "unknown"]
+    },
+    {
+      "type": "boolean",
+      "name": "sms_consent",
+      "description": "True only if the caller clearly agreed to text messages when asked at the text consent step. False if they declined or were never asked."
+    },
+    {
+      "type": "boolean",
+      "name": "disclosures_given",
+      "description": "True if the opening line included both the recording notice and the automated assistant notice."
+    }
+  ],
+  "max_call_duration_ms": 900000,
+  "end_call_after_silence_ms": 20000,
+  "stt_mode": "accurate",
+  "denoising_mode": "noise-cancellation",
+  "reminder_trigger_ms": 20000,
+  "reminder_max_count": 1,
+  "interruption_sensitivity": 1,
+  "responsiveness": 1,
+  "boosted_keywords": [
+    "rear ended",
+    "I-275",
+    "Dale Mabry",
+    "Tampa",
+    "Brandon",
+    "Clearwater",
+    "St. Petersburg",
+    "emergency room",
+    "chiropractor",
+    "police report",
+    "slip and fall",
+    "dog bite",
+    "workers comp",
+    "malpractice",
+    "retainer",
+    "Harbor Point",
+    "Lawmatics"
+  ],
+  "begin_message_delay_ms": 1800
+}
