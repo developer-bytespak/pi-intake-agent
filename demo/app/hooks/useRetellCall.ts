@@ -173,9 +173,16 @@ export function useRetellCall(): UseRetellCall {
       const { RetellClient } = await import("retell-client-js-sdk");
       const client = new RetellClient({ key: publicKey });
 
+      // Audio path experiment. The default is WebRTC through LiveKit's cloud;
+      // ?transport=gateway asks Retell for its own WebRTC gateway instead,
+      // which behaves differently on networks that relay or throttle UDP.
+      const params = new URLSearchParams(window.location.search);
+      const transport = params.get("transport");
+
       const session = client.createWebCall({
         agent_id: agentId,
         transcript: true,
+        extra: transport ? { transport } : undefined,
         retell_llm_dynamic_variables: {
           firm_name: current?.firm.name ?? "",
           short_name: current?.firm.shortName ?? "",
