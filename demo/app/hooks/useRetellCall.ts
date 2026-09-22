@@ -173,9 +173,9 @@ export function useRetellCall(): UseRetellCall {
       const { RetellClient } = await import("retell-client-js-sdk");
       const client = new RetellClient({ key: publicKey });
 
-      // Audio path. Retell's own WebRTC gateway is the default here because
-      // it transcribed cleanly on a network where the LiveKit path arrived
-      // late and garbled. ?transport=livekit switches back for comparison.
+      // Audio path. Retell picks its WebRTC gateway for this account anyway;
+      // pinning it keeps every call on the same path so delays can be
+      // compared. ?transport=livekit tries the LiveKit cloud path instead.
       const params = new URLSearchParams(window.location.search);
       const transport = params.get("transport") || "gateway";
 
