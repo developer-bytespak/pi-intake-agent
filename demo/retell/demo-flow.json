@@ -1,6 +1,9 @@
 {
   "start_speaker": "agent",
-  "model_choice": { "type": "cascading", "model": "gpt-4.1-mini" },
+  "model_choice": {
+    "type": "cascading",
+    "model": "gpt-4.1-mini"
+  },
   "model_temperature": 0,
   "tool_call_strict_mode": true,
   "start_node_id": "n_opening",
@@ -14,7 +17,7 @@
     "lead_id": "",
     "intake_desk_number": "<INTAKE_DESK_E164>"
   },
-  "global_prompt": "You are the automated client intake assistant for {{firm_name}}, a personal injury law firm in Tampa, Florida. You take the first details from someone who has been hurt, decide with the firm's rules whether it is a case the firm can look at, open the file, and get an attorney to call them. You are not a lawyer and you never give legal advice. This is a demonstration system with invented clients and it holds no real records.\n\nSTYLE\n- Warm, calm, brief. The caller may be in pain, frightened, or angry at an insurer. Short plain sentences, one question at a time. No emojis and no symbols.\n- Never invent facts. If something is not in the firm facts below or in a tool result, say an attorney will cover it.\n- Read tool results back using the tool's own wording. Never reword a file reference or a callback time.\n\nHARD RULES, THEY APPLY AT EVERY POINT IN THE CALL\n- Never say what a case is worth, never estimate a settlement, never promise an outcome, never say whether the caller has a good case. If asked, say only that an attorney reviews every file and will talk it through on the callback.\n- You may say the firm works on contingency, meaning there is no fee unless the case is won, and that an attorney explains the details. Say nothing else about fees or percentages.\n- Never give legal advice: not whether to talk to an insurer, not whether to sign anything, not what a deadline means for them beyond what a tool result says. Say an attorney will advise on the callback.\n- Never discuss another client, another file, or the reason for a conflict check result.\n- Privacy. Ask only for what the tools need: name, the best phone number, an email if they want the paperwork there, what happened, when, whether they had treatment, who was at fault, whether they already have a lawyer, and the other party's name. Never ask for a social security number, a date of birth, a driver's licence number, an insurance policy number, a card, or medical record details. If the caller offers any of those unprompted, say you do not need it and move on without repeating it.\n- Recording. The opening line says the call is recorded and that you are automated, and it must always be said. If the caller objects to being recorded, apologise, say you cannot switch the recording off on this line, offer to have a person call them back, and go to the Take a message node.\n- Texts. Only ask about text messages at the text consent node, using the exact wording written there. If the caller says at any point that they do not want texts, acknowledge it once and never ask again.\n\nTRANSFER RULE\n- If the caller asks for a person, a human, a lawyer right now, the office, an attorney by name, or says they are an existing client with a question about their case, go to the Person or billing node.\n- If the topic is a bill, an invoice, money owed, a complaint about the firm, or a media enquiry, do not handle it. Say you will pass them to the team and go to the Person or billing node.\n- If the caller becomes abusive, go to the Person or billing node without arguing.\n\nEMERGENCY\n- If the caller says they are hurt right now and have not had treatment, or describes a head injury, chest pain, or bleeding that will not stop, say first: please get medical care now, call 911 if it is serious, and we will be here when you are ready. Then carry on only if they want to.\n\nFIRM FACTS. There is no knowledge base in this demo, so answer questions from this list and nothing else.\n\nFirm: {{firm_name}}. Office number {{callback_number}}. Office at 400 North Ashley Drive, Suite 1200, Tampa, Florida. Hours Monday to Friday 8:30 to 5:30, Saturday 9 to 1. This intake line answers twenty four hours a day and an intake specialist is on call at night.\n\nCases the firm takes: car, truck, motorcycle and rideshare accidents, slip and fall and other injuries on someone else's property, dog bites, wrongful death, and injuries from defective products. Cases the firm refers to a partner firm: medical malpractice and injuries at work. Florida only; an attorney decides on anything that happened outside Florida.\n\nFlorida filing deadline for negligence claims: two years from the incident. Do not explain what this means for the caller; the qualify_lead tool decides and gives you the words.\n\nWhat happens after this call, in order: the file is opened, the caller gets a text with the file reference and a link to read and sign the retainer on their phone if they agreed to texts, and an attorney calls them back at the time the tool gives you.\n\n## Filling in the tools\n\nNever say any of this out loud.\n\n- classify_intake: description is what the caller said happened, in their own words, as close to verbatim as you can.\n- qualify_lead: case_type from classify_intake. incident_date exactly as the caller said it, for example 'last Tuesday' or 'March 3rd'; do not convert it. treatment, fault, police_report and prior_counsel are the caller's own answers, short. incident_state is the US state if they said one, else FL.\n- conflict_check: adverse_party is the other driver, business or owner the caller named, or empty if they do not know. first_name and last_name are the caller's.\n- create_matter: everything you collected. qualification, score, flags and reasons copied from the qualify_lead result. phone is the number the caller gave, or the number they are calling from.\n- record_sms_consent: opted_in true only if the caller clearly said yes to texts, otherwise false.\n- send_retainer and confirm_lead: matter_id and reference from create_matter, opted_in from record_sms_consent.\n- schedule_callback: urgency is today when the qualify_lead flags include Deadline close or the caller is in pain now, otherwise normal. note is one sentence for the attorney.\n- take_message: reason is referral for a case the firm refers out, declined when the lead did not qualify but wants a call anyway, conflict_hold after a conflict hit, transfer_failed when nobody picked up, callback_requested otherwise.\n\nIf the caller goes quiet, wait. People pause to find a date or calm down. Ask again once, gently, and only after a real silence.",
+  "global_prompt": "You are the automated client intake assistant for {{firm_name}}, a personal injury law firm in Tampa, Florida. You take the first details from someone who has been hurt, decide with the firm's rules whether it is a case the firm can look at, open the file, and get an attorney to call them. You are not a lawyer and you never give legal advice. This is a demonstration system with invented clients and it holds no real records.\n\nSTYLE\n- Warm, calm, brief. The caller may be in pain, frightened, or angry at an insurer. Short plain sentences, one question at a time. No emojis and no symbols.\n- Never invent facts. If something is not in the firm facts below or in a tool result, say an attorney will cover it.\n- Read tool results back using the tool's own wording. Never reword a file reference or a callback time.\n\nHARD RULES, THEY APPLY AT EVERY POINT IN THE CALL\n- Never say what a case is worth, never estimate a settlement, never promise an outcome, never say whether the caller has a good case. If asked, say only that an attorney reviews every file and will talk it through on the callback.\n- You may say the firm works on contingency, meaning there is no fee unless the case is won, and that an attorney explains the details. Say nothing else about fees or percentages.\n- Never give legal advice: not whether to talk to an insurer, not whether to sign anything, not what a deadline means for them beyond what a tool result says. Say an attorney will advise on the callback.\n- Never discuss another client, another file, or the reason for a conflict check result.\n- Privacy. Ask only for what the tools need: name, the best phone number, an email if they want the paperwork there, what happened, when, whether they had treatment, who was at fault, whether they already have a lawyer, and the other party's name. Never ask for a social security number, a date of birth, a driver's licence number, an insurance policy number, a card, or medical record details. If the caller offers any of those unprompted, say you do not need it and move on without repeating it.\n- Recording. The opening line says the call is recorded and that you are automated, and it must always be said. If the caller objects to being recorded, apologise, say you cannot switch the recording off on this line, offer to have a person call them back, and go to the Take a message node.\n- Texts. Only ask about text messages at the text consent node, using the exact wording written there. If the caller says at any point that they do not want texts, acknowledge it once and never ask again.\n\nTRANSFER RULE\n- If the caller asks for a person, a human, a lawyer right now, the office, an attorney by name, or says they are an existing client with a question about their case, go to the Person or billing node.\n- If the topic is a bill, an invoice, money owed, a complaint about the firm, or a media enquiry, do not handle it. Say you will pass them to the team and go to the Person or billing node.\n- If the caller becomes abusive, go to the Person or billing node without arguing.\n\nEMERGENCY\n- If the caller says they are hurt right now and have not had treatment, or describes a head injury, chest pain, or bleeding that will not stop, say first: please get medical care now, call 911 if it is serious, and we will be here when you are ready. Then carry on only if they want to.\n\nFIRM FACTS. There is no knowledge base in this demo, so answer questions from this list and nothing else.\n\nFirm: {{firm_name}}. Office number {{callback_number}}. Office at 400 North Ashley Drive, Suite 1200, Tampa, Florida. Hours Monday to Friday 8:30 to 5:30, Saturday 9 to 1. This intake line answers twenty four hours a day and an intake specialist is on call at night.\n\nCases the firm takes: car, truck, motorcycle and rideshare accidents, slip and fall and other injuries on someone else's property, dog bites, wrongful death, and injuries from defective products. Cases the firm refers to a partner firm: medical malpractice and injuries at work. Florida only; an attorney decides on anything that happened outside Florida.\n\nFlorida filing deadline for negligence claims: two years from the incident. Do not explain what this means for the caller; the qualify_lead tool decides and gives you the words.\n\nWhat happens after this call, in order: the file is opened, the caller gets a text with the file reference and a link to read and sign the retainer on their phone if they agreed to texts, and an attorney calls them back at the time the tool gives you.\n\n## Filling in the tools\n\nNever say any of this out loud.\n\n- classify_intake: description is what the caller said happened, in their own words, as close to verbatim as you can.\n- qualify_lead: case_type from classify_intake. incident_date exactly as the caller said it, for example 'last Tuesday' or 'March 3rd'; do not convert it. treatment is yes, no or unknown (any doctor, ER, urgent care or chiropractor visit is yes). fault is other, self, shared or unknown (rear ended, hit by another driver, a wet floor or an unmarked hazard is other; self only when the caller blames themselves and nobody else was involved). police_report is yes, no or unknown. prior_counsel is yes only if they already have a lawyer on this matter. Put the caller's own words in answers. incident_state is the US state if they said one, else FL.\n- conflict_check: adverse_party is the other driver, business or owner the caller named, or empty if they do not know. first_name and last_name are the caller's.\n- create_matter: everything you collected. qualification, score, flags and reasons copied from the qualify_lead result. phone is the number the caller gave, or the number they are calling from.\n- record_sms_consent: opted_in true only if the caller clearly said yes to texts, otherwise false.\n- send_retainer and confirm_lead: matter_id and reference from create_matter, opted_in from record_sms_consent.\n- schedule_callback: urgency is today when the qualify_lead flags include Deadline close or the caller is in pain now, otherwise normal. note is one sentence for the attorney.\n- take_message: reason is referral for a case the firm refers out, declined when the lead did not qualify but wants a call anyway, conflict_hold after a conflict hit, transfer_failed when nobody picked up, callback_requested otherwise.\n\nIf the caller goes quiet, wait. People pause to find a date or calm down. Ask again once, gently, and only after a real silence.",
   "tools": [
     {
       "type": "custom",
@@ -37,7 +40,9 @@
             "description": "What the caller said happened, in the caller's own words, as close to verbatim as possible. Do not summarise and do not add an opinion."
           }
         },
-        "required": ["description"]
+        "required": [
+          "description"
+        ]
       },
       "response_variables": {
         "case_type": "case_type",
@@ -50,7 +55,7 @@
       "type": "custom",
       "tool_id": "qualify_lead",
       "name": "qualify_lead",
-      "description": "Run the firm's intake rules on the answers: the Florida filing deadline, prior counsel, who was at fault, treatment. Returns { \"status\": \"qualified\" | \"review\" | \"disqualified\" | \"referral\", \"score\": 0-100, \"flags\": [...], \"reasons\": [...], \"say\": \"...\" }. Say the 'say' text exactly as returned.",
+      "description": "Run the firm's intake rules on the answers: the Florida filing deadline, prior counsel, who was at fault, treatment. Normalise each answer to the enum before calling: an ER visit is treatment yes, being rear ended is fault other, 'not yet' is treatment no. Returns { \"status\": \"qualified\" | \"review\" | \"disqualified\" | \"referral\", \"score\": 0-100, \"flags\": [...], \"reasons\": [...], \"say\": \"...\" }. Say the 'say' text exactly as returned. If it returns status need_answers with a 'questions' list, ask those questions one at a time and call it again; do not guess an answer.",
       "url": "https://<DEMO_HOST>/api/retell/tool",
       "method": "POST",
       "speak_during_execution": true,
@@ -62,15 +67,68 @@
       "parameters": {
         "type": "object",
         "properties": {
-          "case_type": { "type": "string", "description": "The case_type from classify_intake, for example auto, premises, dog_bite, wrongful_death, product, med_mal, workers_comp, other." },
-          "incident_date": { "type": "string", "description": "When it happened, exactly as the caller said it, for example 'last Tuesday', 'about three weeks ago', 'March 3rd 2024'. Do not convert it." },
-          "treatment": { "type": "string", "description": "The caller's answer about medical treatment, short, for example 'yes, went to the ER' or 'not yet'." },
-          "fault": { "type": "string", "description": "The caller's answer about who was at fault, short, for example 'the other driver ran a red light' or 'it was my fault'." },
-          "police_report": { "type": "string", "description": "Whether police came and wrote a report, or an incident report was filed: yes, no, or unknown." },
-          "prior_counsel": { "type": "string", "description": "Whether the caller already has a lawyer on this matter: yes, no, or what they said." },
-          "incident_state": { "type": "string", "description": "The US state where it happened, two letters if known, else FL." }
+          "case_type": {
+            "type": "string",
+            "description": "The case_type from classify_intake, for example auto, premises, dog_bite, wrongful_death, product, med_mal, workers_comp, other."
+          },
+          "incident_date": {
+            "type": "string",
+            "description": "When it happened, exactly as the caller said it, for example 'last Tuesday', 'about three weeks ago', 'March 3rd 2024'. Do not convert it."
+          },
+          "treatment": {
+            "type": "string",
+            "enum": [
+              "yes",
+              "no",
+              "unknown"
+            ],
+            "description": "yes if the caller has seen any doctor, ER, urgent care, chiropractor or physio for this injury, even once. no if they clearly have not. unknown if they did not say."
+          },
+          "fault": {
+            "type": "string",
+            "enum": [
+              "other",
+              "self",
+              "shared",
+              "unknown"
+            ],
+            "description": "other if another driver, business, owner or company was at fault (including being rear ended, hit by someone else, a wet floor, an unmarked hazard). self only if the caller says it was their own fault and nobody else was involved. shared if both. unknown if unclear."
+          },
+          "police_report": {
+            "type": "string",
+            "enum": [
+              "yes",
+              "no",
+              "unknown"
+            ],
+            "description": "yes if police attended or a report or incident report was made. no if not. unknown if they did not say."
+          },
+          "prior_counsel": {
+            "type": "string",
+            "enum": [
+              "yes",
+              "no",
+              "unknown"
+            ],
+            "description": "yes only if the caller already has a lawyer on this matter or signed with a firm. no if not. unknown if they did not say."
+          },
+          "incident_state": {
+            "type": "string",
+            "description": "The US state where it happened, two letters if known, else FL."
+          },
+          "answers": {
+            "type": "string",
+            "description": "The caller's own words for the four answers, one line, so the attorney can read what was actually said."
+          }
         },
-        "required": ["case_type", "incident_date", "treatment", "fault", "prior_counsel"]
+        "required": [
+          "case_type",
+          "incident_date",
+          "treatment",
+          "fault",
+          "police_report",
+          "prior_counsel"
+        ]
       },
       "response_variables": {
         "qualification": "status",
@@ -82,7 +140,8 @@
         "fault_result": "fault",
         "police_report_result": "police_report",
         "prior_counsel_result": "prior_counsel",
-        "qualify_say": "say"
+        "qualify_say": "say",
+        "qual_questions": "questions"
       }
     },
     {
@@ -101,11 +160,24 @@
       "parameters": {
         "type": "object",
         "properties": {
-          "adverse_party": { "type": "string", "description": "The other driver, the business, the property owner or the dog's owner the caller named. Empty string if they do not know." },
-          "first_name": { "type": "string", "description": "The caller's first name." },
-          "last_name": { "type": "string", "description": "The caller's last name." }
+          "adverse_party": {
+            "type": "string",
+            "description": "The other driver, the business, the property owner or the dog's owner the caller named. Empty string if they do not know."
+          },
+          "first_name": {
+            "type": "string",
+            "description": "The caller's first name."
+          },
+          "last_name": {
+            "type": "string",
+            "description": "The caller's last name."
+          }
         },
-        "required": ["adverse_party", "first_name", "last_name"]
+        "required": [
+          "adverse_party",
+          "first_name",
+          "last_name"
+        ]
       },
       "response_variables": {
         "conflict": "status",
@@ -128,25 +200,86 @@
       "parameters": {
         "type": "object",
         "properties": {
-          "first_name": { "type": "string" },
-          "last_name": { "type": "string" },
-          "phone": { "type": "string", "description": "The best number for the caller, digits as given, or the number they are calling from." },
-          "email": { "type": "string", "description": "Email if given, else empty string." },
-          "case_type": { "type": "string" },
-          "incident_date": { "type": "string", "description": "As the caller said it." },
-          "incident_state": { "type": "string" },
-          "summary": { "type": "string", "description": "One or two sentences on what happened, for the attorney. No opinion on the case." },
-          "qualification": { "type": "string", "description": "status from qualify_lead." },
-          "score": { "type": "number", "description": "score from qualify_lead." },
-          "flags": { "type": "array", "items": { "type": "string" }, "description": "flags from qualify_lead." },
-          "reasons": { "type": "array", "items": { "type": "string" }, "description": "reasons from qualify_lead." },
-          "treated": { "type": "string", "description": "treated from qualify_lead: yes, no or unknown." },
-          "fault": { "type": "string", "description": "fault from qualify_lead: other, self, shared or unknown." },
-          "police_report": { "type": "boolean" },
-          "prior_counsel": { "type": "string", "description": "yes, no or unknown." },
-          "adverse_party": { "type": "string", "description": "The other party's name if known, else empty string." }
+          "first_name": {
+            "type": "string"
+          },
+          "last_name": {
+            "type": "string"
+          },
+          "phone": {
+            "type": "string",
+            "description": "The best number for the caller, digits as given, or the number they are calling from."
+          },
+          "email": {
+            "type": "string",
+            "description": "Email if given, else empty string."
+          },
+          "case_type": {
+            "type": "string"
+          },
+          "incident_date": {
+            "type": "string",
+            "description": "As the caller said it."
+          },
+          "incident_state": {
+            "type": "string"
+          },
+          "summary": {
+            "type": "string",
+            "description": "One or two sentences on what happened, for the attorney. No opinion on the case."
+          },
+          "qualification": {
+            "type": "string",
+            "description": "status from qualify_lead."
+          },
+          "score": {
+            "type": "number",
+            "description": "score from qualify_lead."
+          },
+          "flags": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "flags from qualify_lead."
+          },
+          "reasons": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "reasons from qualify_lead."
+          },
+          "treated": {
+            "type": "string",
+            "description": "treated from qualify_lead: yes, no or unknown."
+          },
+          "fault": {
+            "type": "string",
+            "description": "fault from qualify_lead: other, self, shared or unknown."
+          },
+          "police_report": {
+            "type": "boolean"
+          },
+          "prior_counsel": {
+            "type": "string",
+            "description": "yes, no or unknown."
+          },
+          "adverse_party": {
+            "type": "string",
+            "description": "The other party's name if known, else empty string."
+          }
         },
-        "required": ["first_name", "last_name", "phone", "case_type", "incident_date", "summary", "qualification", "score"]
+        "required": [
+          "first_name",
+          "last_name",
+          "phone",
+          "case_type",
+          "incident_date",
+          "summary",
+          "qualification",
+          "score"
+        ]
       },
       "response_variables": {
         "matter_id": "matter_id",
@@ -171,10 +304,18 @@
       "parameters": {
         "type": "object",
         "properties": {
-          "opted_in": { "type": "boolean", "description": "True only if the caller clearly agreed to text messages." },
-          "phone": { "type": "string", "description": "The number the texts would go to." }
+          "opted_in": {
+            "type": "boolean",
+            "description": "True only if the caller clearly agreed to text messages."
+          },
+          "phone": {
+            "type": "string",
+            "description": "The number the texts would go to."
+          }
         },
-        "required": ["opted_in"]
+        "required": [
+          "opted_in"
+        ]
       },
       "response_variables": {
         "opted_in": "opted_in",
@@ -197,14 +338,32 @@
       "parameters": {
         "type": "object",
         "properties": {
-          "matter_id": { "type": "string" },
-          "reference": { "type": "string" },
-          "phone": { "type": "string" },
-          "email": { "type": "string" },
-          "first_name": { "type": "string" },
-          "opted_in": { "type": "boolean", "description": "From record_sms_consent." }
+          "matter_id": {
+            "type": "string"
+          },
+          "reference": {
+            "type": "string"
+          },
+          "phone": {
+            "type": "string"
+          },
+          "email": {
+            "type": "string"
+          },
+          "first_name": {
+            "type": "string"
+          },
+          "opted_in": {
+            "type": "boolean",
+            "description": "From record_sms_consent."
+          }
         },
-        "required": ["matter_id", "reference", "first_name", "opted_in"]
+        "required": [
+          "matter_id",
+          "reference",
+          "first_name",
+          "opted_in"
+        ]
       },
       "response_variables": {
         "retainer_say": "say"
@@ -226,14 +385,33 @@
       "parameters": {
         "type": "object",
         "properties": {
-          "matter_id": { "type": "string" },
-          "reference": { "type": "string" },
-          "urgency": { "type": "string", "description": "today or normal." },
-          "note": { "type": "string", "description": "One sentence for the attorney." },
-          "first_name": { "type": "string" },
-          "phone": { "type": "string" }
+          "matter_id": {
+            "type": "string"
+          },
+          "reference": {
+            "type": "string"
+          },
+          "urgency": {
+            "type": "string",
+            "description": "today or normal."
+          },
+          "note": {
+            "type": "string",
+            "description": "One sentence for the attorney."
+          },
+          "first_name": {
+            "type": "string"
+          },
+          "phone": {
+            "type": "string"
+          }
         },
-        "required": ["matter_id", "reference", "urgency", "note"]
+        "required": [
+          "matter_id",
+          "reference",
+          "urgency",
+          "note"
+        ]
       },
       "response_variables": {
         "callback_attorney": "attorney",
@@ -256,13 +434,27 @@
       "parameters": {
         "type": "object",
         "properties": {
-          "matter_id": { "type": "string" },
-          "reference": { "type": "string" },
-          "first_name": { "type": "string" },
-          "phone": { "type": "string" },
-          "opted_in": { "type": "boolean" }
+          "matter_id": {
+            "type": "string"
+          },
+          "reference": {
+            "type": "string"
+          },
+          "first_name": {
+            "type": "string"
+          },
+          "phone": {
+            "type": "string"
+          },
+          "opted_in": {
+            "type": "boolean"
+          }
         },
-        "required": ["matter_id", "reference", "opted_in"]
+        "required": [
+          "matter_id",
+          "reference",
+          "opted_in"
+        ]
       },
       "response_variables": {}
     },
@@ -282,12 +474,26 @@
       "parameters": {
         "type": "object",
         "properties": {
-          "name": { "type": "string" },
-          "phone": { "type": "string" },
-          "reason": { "type": "string", "description": "referral, declined, conflict_hold, transfer_failed, or callback_requested." },
-          "note": { "type": "string", "description": "One short sentence." }
+          "name": {
+            "type": "string"
+          },
+          "phone": {
+            "type": "string"
+          },
+          "reason": {
+            "type": "string",
+            "description": "referral, declined, conflict_hold, transfer_failed, or callback_requested."
+          },
+          "note": {
+            "type": "string",
+            "description": "One short sentence."
+          }
         },
-        "required": ["name", "phone", "reason"]
+        "required": [
+          "name",
+          "phone",
+          "reason"
+        ]
       },
       "response_variables": {
         "message_say": "say"
@@ -306,38 +512,59 @@
       "edges": [
         {
           "id": "e_open_injury",
-          "transition_condition": { "type": "prompt", "prompt": "Caller describes an injury, an accident, a fall, a bite, a death in the family, or anything that happened to them or a relative" },
+          "transition_condition": {
+            "type": "prompt",
+            "prompt": "Caller describes an injury, an accident, a fall, a bite, a death in the family, or anything that happened to them or a relative"
+          },
           "destination_node_id": "n_classify"
         },
         {
           "id": "e_open_outbound_yes",
-          "transition_condition": { "type": "prompt", "prompt": "This is an outbound call and the person confirms it is them and that now is a good time, or asks what this is about" },
+          "transition_condition": {
+            "type": "prompt",
+            "prompt": "This is an outbound call and the person confirms it is them and that now is a good time, or asks what this is about"
+          },
           "destination_node_id": "n_outbound_recap"
         },
         {
           "id": "e_open_outbound_later",
-          "transition_condition": { "type": "prompt", "prompt": "This is an outbound call and the person says it is not a good time, they are busy or driving, or asks to be called later" },
+          "transition_condition": {
+            "type": "prompt",
+            "prompt": "This is an outbound call and the person says it is not a good time, they are busy or driving, or asks to be called later"
+          },
           "destination_node_id": "n_call_later"
         },
         {
           "id": "e_open_person",
-          "transition_condition": { "type": "prompt", "prompt": "Caller asks for a person, a lawyer right now, the office, or an attorney by name, says they are an existing client, or raises a bill, a complaint, a media enquiry, or objects to being recorded" },
+          "transition_condition": {
+            "type": "prompt",
+            "prompt": "Caller asks for a person, a lawyer right now, the office, or an attorney by name, says they are an existing client, or raises a bill, a complaint, a media enquiry, or objects to being recorded"
+          },
           "destination_node_id": "n_transfer_request"
         },
         {
           "id": "e_open_spam",
-          "transition_condition": { "type": "prompt", "prompt": "The call is a sales pitch, a marketing call, a recorded message, a robocall or an obvious wrong number" },
+          "transition_condition": {
+            "type": "prompt",
+            "prompt": "The call is a sales pitch, a marketing call, a recorded message, a robocall or an obvious wrong number"
+          },
           "destination_node_id": "n_spam"
         },
         {
           "id": "e_open_silent",
-          "transition_condition": { "type": "prompt", "prompt": "Nobody speaks, there is only background noise, or nothing intelligible is said" },
+          "transition_condition": {
+            "type": "prompt",
+            "prompt": "Nobody speaks, there is only background noise, or nothing intelligible is said"
+          },
           "destination_node_id": "n_no_response"
         }
       ],
       "else_edge": {
         "id": "e_open_else",
-        "transition_condition": { "type": "prompt", "prompt": "Else" },
+        "transition_condition": {
+          "type": "prompt",
+          "prompt": "Else"
+        },
         "destination_node_id": "n_classify"
       }
     },
@@ -352,18 +579,27 @@
       "edges": [
         {
           "id": "e_recap_desc",
-          "transition_condition": { "type": "prompt", "prompt": "Caller describes what happened, even briefly, or says the message covers it" },
+          "transition_condition": {
+            "type": "prompt",
+            "prompt": "Caller describes what happened, even briefly, or says the message covers it"
+          },
           "destination_node_id": "n_classify"
         },
         {
           "id": "e_recap_person",
-          "transition_condition": { "type": "prompt", "prompt": "Caller asks for a person or a lawyer right now, or objects to being recorded" },
+          "transition_condition": {
+            "type": "prompt",
+            "prompt": "Caller asks for a person or a lawyer right now, or objects to being recorded"
+          },
           "destination_node_id": "n_transfer_request"
         }
       ],
       "else_edge": {
         "id": "e_recap_else",
-        "transition_condition": { "type": "prompt", "prompt": "Else" },
+        "transition_condition": {
+          "type": "prompt",
+          "prompt": "Else"
+        },
         "destination_node_id": "n_classify"
       }
     },
@@ -378,13 +614,19 @@
       "edges": [
         {
           "id": "e_later_ok",
-          "transition_condition": { "type": "prompt", "prompt": "Caller confirms the number or gives a time, or says any time is fine" },
+          "transition_condition": {
+            "type": "prompt",
+            "prompt": "Caller confirms the number or gives a time, or says any time is fine"
+          },
           "destination_node_id": "n_message_later"
         }
       ],
       "else_edge": {
         "id": "e_later_else",
-        "transition_condition": { "type": "prompt", "prompt": "Else" },
+        "transition_condition": {
+          "type": "prompt",
+          "prompt": "Else"
+        },
         "destination_node_id": "n_message_later"
       }
     },
@@ -396,9 +638,19 @@
       "tool_type": "local",
       "wait_for_result": true,
       "speak_during_execution": false,
-      "instruction": { "type": "static_text", "text": "Noted." },
+      "instruction": {
+        "type": "static_text",
+        "text": "Noted."
+      },
       "edges": [],
-      "else_edge": { "id": "e_ml_else", "transition_condition": { "type": "prompt", "prompt": "Else" }, "destination_node_id": "n_end" }
+      "else_edge": {
+        "id": "e_ml_else",
+        "transition_condition": {
+          "type": "prompt",
+          "prompt": "Else"
+        },
+        "destination_node_id": "n_end"
+      }
     },
     {
       "id": "n_classify",
@@ -408,9 +660,19 @@
       "tool_type": "local",
       "wait_for_result": true,
       "speak_during_execution": false,
-      "instruction": { "type": "static_text", "text": "I'm sorry, let me take that down." },
+      "instruction": {
+        "type": "static_text",
+        "text": "I'm sorry, let me take that down."
+      },
       "edges": [],
-      "else_edge": { "id": "e_cls_else", "transition_condition": { "type": "prompt", "prompt": "Else" }, "destination_node_id": "n_route_type" }
+      "else_edge": {
+        "id": "e_cls_else",
+        "transition_condition": {
+          "type": "prompt",
+          "prompt": "Else"
+        },
+        "destination_node_id": "n_route_type"
+      }
     },
     {
       "id": "n_route_type",
@@ -421,13 +683,26 @@
           "id": "e_rt_referral",
           "transition_condition": {
             "type": "equation",
-            "equations": [{ "left": "{{case_accepted}}", "operator": "==", "right": "false" }],
+            "equations": [
+              {
+                "left": "{{case_accepted}}",
+                "operator": "==",
+                "right": "false"
+              }
+            ],
             "operator": "&&"
           },
           "destination_node_id": "n_referral"
         }
       ],
-      "else_edge": { "id": "e_rt_else", "transition_condition": { "type": "prompt", "prompt": "Else" }, "destination_node_id": "n_questions" }
+      "else_edge": {
+        "id": "e_rt_else",
+        "transition_condition": {
+          "type": "prompt",
+          "prompt": "Else"
+        },
+        "destination_node_id": "n_questions"
+      }
     },
     {
       "id": "n_questions",
@@ -435,21 +710,69 @@
       "name": "4. Qualifying questions, one at a time",
       "instruction": {
         "type": "prompt",
-        "text": "Say the classify_intake 'say' text first, exactly as it came back: {{classify_say}}\n\nThen ask the questions from the classify_intake 'questions' array, in the order they came back, one at a time, waiting for an answer before the next. Do not add questions. Do not comment on the answers beyond a brief acknowledgement. If the caller has already answered one of them in what they said earlier, skip it. If they do not know an answer, accept that and move on. If they mention a head injury, chest pain or bleeding right now, give the emergency line from the global prompt first."
+        "text": "Say the classify_intake 'say' text first, exactly as it came back: {{classify_say}}\n\nThen ask the questions from the classify_intake 'questions' array, in the order they came back, one at a time, waiting for an answer before the next. Do not add questions. Do not comment on the answers beyond a brief acknowledgement. If the caller has already answered one of them in what they said earlier, skip it. If they do not know an answer, accept that and move on. If they mention a head injury, chest pain or bleeding right now, give the emergency line from the global prompt first.\n\nAll four answers are needed before qualify_lead is called: when it happened, treatment, who was at fault, and whether they already have a lawyer. Do not move on with any of them blank; ask each one plainly. \"I don't know\" is an acceptable answer to fault."
       },
       "edges": [
         {
           "id": "e_q_done",
-          "transition_condition": { "type": "prompt", "prompt": "Caller has answered the questions, or answered what they can and said they do not know the rest" },
+          "transition_condition": {
+            "type": "prompt",
+            "prompt": "Caller has answered all four questions (when, treatment, fault, prior lawyer), or answered what they can and explicitly said they do not know the rest"
+          },
           "destination_node_id": "n_qualify"
         },
         {
           "id": "e_q_person",
-          "transition_condition": { "type": "prompt", "prompt": "Caller asks for a person or a lawyer right now, raises a bill or a complaint, objects to being recorded, or is abusive" },
+          "transition_condition": {
+            "type": "prompt",
+            "prompt": "Caller asks for a person or a lawyer right now, raises a bill or a complaint, objects to being recorded, or is abusive"
+          },
           "destination_node_id": "n_transfer_request"
         }
       ],
-      "else_edge": { "id": "e_q_else", "transition_condition": { "type": "prompt", "prompt": "Else" }, "destination_node_id": "n_qualify" }
+      "else_edge": {
+        "id": "e_q_else",
+        "transition_condition": {
+          "type": "prompt",
+          "prompt": "Else"
+        },
+        "destination_node_id": "n_qualify"
+      }
+    },
+    {
+      "id": "n_questions_more",
+      "type": "conversation",
+      "name": "4b. Missing answers, ask them before scoring",
+      "instruction": {
+        "type": "prompt",
+        "text": "Say the qualify_lead 'say' text: {{qualify_say}} Then ask the questions from the qualify_lead 'questions' list, one at a time, waiting for each answer. Do not ask anything that was already answered. When they are answered, call qualify_lead again with every answer normalised: treatment yes, no or unknown; fault other, self, shared or unknown; police_report yes, no or unknown; prior_counsel yes, no or unknown."
+      },
+      "edges": [
+        {
+          "id": "e_qm_done",
+          "transition_condition": {
+            "type": "prompt",
+            "prompt": "Caller has answered the missing questions, or said they do not know"
+          },
+          "destination_node_id": "n_qualify"
+        },
+        {
+          "id": "e_qm_person",
+          "transition_condition": {
+            "type": "prompt",
+            "prompt": "Caller asks for a person or a lawyer right now, or is abusive"
+          },
+          "destination_node_id": "n_transfer_request"
+        }
+      ],
+      "else_edge": {
+        "id": "e_qm_else",
+        "transition_condition": {
+          "type": "prompt",
+          "prompt": "Else"
+        },
+        "destination_node_id": "n_qualify"
+      }
     },
     {
       "id": "n_qualify",
@@ -459,9 +782,19 @@
       "tool_type": "local",
       "wait_for_result": true,
       "speak_during_execution": false,
-      "instruction": { "type": "static_text", "text": "Thank you. Give me a second." },
+      "instruction": {
+        "type": "static_text",
+        "text": "Thank you. Give me a second."
+      },
       "edges": [],
-      "else_edge": { "id": "e_qual_else", "transition_condition": { "type": "prompt", "prompt": "Else" }, "destination_node_id": "n_route_qual" }
+      "else_edge": {
+        "id": "e_qual_else",
+        "transition_condition": {
+          "type": "prompt",
+          "prompt": "Else"
+        },
+        "destination_node_id": "n_route_qual"
+      }
     },
     {
       "id": "n_route_qual",
@@ -469,10 +802,31 @@
       "name": "6. Route on the qualification",
       "edges": [
         {
+          "id": "e_rq_need",
+          "transition_condition": {
+            "type": "equation",
+            "equations": [
+              {
+                "left": "{{qualification}}",
+                "operator": "==",
+                "right": "need_answers"
+              }
+            ],
+            "operator": "&&"
+          },
+          "destination_node_id": "n_questions_more"
+        },
+        {
           "id": "e_rq_disq",
           "transition_condition": {
             "type": "equation",
-            "equations": [{ "left": "{{qualification}}", "operator": "==", "right": "disqualified" }],
+            "equations": [
+              {
+                "left": "{{qualification}}",
+                "operator": "==",
+                "right": "disqualified"
+              }
+            ],
             "operator": "&&"
           },
           "destination_node_id": "n_decline"
@@ -481,13 +835,26 @@
           "id": "e_rq_ref",
           "transition_condition": {
             "type": "equation",
-            "equations": [{ "left": "{{qualification}}", "operator": "==", "right": "referral" }],
+            "equations": [
+              {
+                "left": "{{qualification}}",
+                "operator": "==",
+                "right": "referral"
+              }
+            ],
             "operator": "&&"
           },
           "destination_node_id": "n_referral"
         }
       ],
-      "else_edge": { "id": "e_rq_else", "transition_condition": { "type": "prompt", "prompt": "Else" }, "destination_node_id": "n_contact" }
+      "else_edge": {
+        "id": "e_rq_else",
+        "transition_condition": {
+          "type": "prompt",
+          "prompt": "Else"
+        },
+        "destination_node_id": "n_contact"
+      }
     },
     {
       "id": "n_decline",
@@ -500,21 +867,37 @@
       "edges": [
         {
           "id": "e_dec_call",
-          "transition_condition": { "type": "prompt", "prompt": "Caller would like an attorney to call them anyway" },
+          "transition_condition": {
+            "type": "prompt",
+            "prompt": "Caller would like an attorney to call them anyway"
+          },
           "destination_node_id": "n_message_details"
         },
         {
           "id": "e_dec_no",
-          "transition_condition": { "type": "prompt", "prompt": "Caller says no, thanks, or wants to hang up" },
+          "transition_condition": {
+            "type": "prompt",
+            "prompt": "Caller says no, thanks, or wants to hang up"
+          },
           "destination_node_id": "n_end"
         },
         {
           "id": "e_dec_person",
-          "transition_condition": { "type": "prompt", "prompt": "Caller asks for a person, is upset and wants a human, or is abusive" },
+          "transition_condition": {
+            "type": "prompt",
+            "prompt": "Caller asks for a person, is upset and wants a human, or is abusive"
+          },
           "destination_node_id": "n_transfer_request"
         }
       ],
-      "else_edge": { "id": "e_dec_else", "transition_condition": { "type": "prompt", "prompt": "Else" }, "destination_node_id": "n_message_details" }
+      "else_edge": {
+        "id": "e_dec_else",
+        "transition_condition": {
+          "type": "prompt",
+          "prompt": "Else"
+        },
+        "destination_node_id": "n_message_details"
+      }
     },
     {
       "id": "n_referral",
@@ -527,16 +910,29 @@
       "edges": [
         {
           "id": "e_ref_ok",
-          "transition_condition": { "type": "prompt", "prompt": "Caller has given a name and a number, or said to use the number they are calling from" },
+          "transition_condition": {
+            "type": "prompt",
+            "prompt": "Caller has given a name and a number, or said to use the number they are calling from"
+          },
           "destination_node_id": "n_message_referral"
         },
         {
           "id": "e_ref_person",
-          "transition_condition": { "type": "prompt", "prompt": "Caller asks for a person or is abusive" },
+          "transition_condition": {
+            "type": "prompt",
+            "prompt": "Caller asks for a person or is abusive"
+          },
           "destination_node_id": "n_transfer_request"
         }
       ],
-      "else_edge": { "id": "e_ref_else", "transition_condition": { "type": "prompt", "prompt": "Else" }, "destination_node_id": "n_message_referral" }
+      "else_edge": {
+        "id": "e_ref_else",
+        "transition_condition": {
+          "type": "prompt",
+          "prompt": "Else"
+        },
+        "destination_node_id": "n_message_referral"
+      }
     },
     {
       "id": "n_message_referral",
@@ -546,9 +942,19 @@
       "tool_type": "local",
       "wait_for_result": true,
       "speak_during_execution": false,
-      "instruction": { "type": "static_text", "text": "Passing that along now." },
+      "instruction": {
+        "type": "static_text",
+        "text": "Passing that along now."
+      },
       "edges": [],
-      "else_edge": { "id": "e_mr_else", "transition_condition": { "type": "prompt", "prompt": "Else" }, "destination_node_id": "n_wrap" }
+      "else_edge": {
+        "id": "e_mr_else",
+        "transition_condition": {
+          "type": "prompt",
+          "prompt": "Else"
+        },
+        "destination_node_id": "n_wrap"
+      }
     },
     {
       "id": "n_message_details",
@@ -561,11 +967,21 @@
       "edges": [
         {
           "id": "e_md_ok",
-          "transition_condition": { "type": "prompt", "prompt": "Caller has given a name and a number, or said to use this number" },
+          "transition_condition": {
+            "type": "prompt",
+            "prompt": "Caller has given a name and a number, or said to use this number"
+          },
           "destination_node_id": "n_message_declined"
         }
       ],
-      "else_edge": { "id": "e_md_else", "transition_condition": { "type": "prompt", "prompt": "Else" }, "destination_node_id": "n_message_declined" }
+      "else_edge": {
+        "id": "e_md_else",
+        "transition_condition": {
+          "type": "prompt",
+          "prompt": "Else"
+        },
+        "destination_node_id": "n_message_declined"
+      }
     },
     {
       "id": "n_message_declined",
@@ -575,9 +991,19 @@
       "tool_type": "local",
       "wait_for_result": true,
       "speak_during_execution": false,
-      "instruction": { "type": "static_text", "text": "One moment." },
+      "instruction": {
+        "type": "static_text",
+        "text": "One moment."
+      },
       "edges": [],
-      "else_edge": { "id": "e_mdc_else", "transition_condition": { "type": "prompt", "prompt": "Else" }, "destination_node_id": "n_wrap" }
+      "else_edge": {
+        "id": "e_mdc_else",
+        "transition_condition": {
+          "type": "prompt",
+          "prompt": "Else"
+        },
+        "destination_node_id": "n_wrap"
+      }
     },
     {
       "id": "n_contact",
@@ -590,16 +1016,29 @@
       "edges": [
         {
           "id": "e_con_ok",
-          "transition_condition": { "type": "prompt", "prompt": "Caller has given a name and a phone number, and has answered or declined the email and other party questions" },
+          "transition_condition": {
+            "type": "prompt",
+            "prompt": "Caller has given a name and a phone number, and has answered or declined the email and other party questions"
+          },
           "destination_node_id": "n_conflict"
         },
         {
           "id": "e_con_person",
-          "transition_condition": { "type": "prompt", "prompt": "Caller asks for a person or a lawyer right now, raises a bill or a complaint, or is abusive" },
+          "transition_condition": {
+            "type": "prompt",
+            "prompt": "Caller asks for a person or a lawyer right now, raises a bill or a complaint, or is abusive"
+          },
           "destination_node_id": "n_transfer_request"
         }
       ],
-      "else_edge": { "id": "e_con_else", "transition_condition": { "type": "prompt", "prompt": "Else" }, "destination_node_id": "n_conflict" }
+      "else_edge": {
+        "id": "e_con_else",
+        "transition_condition": {
+          "type": "prompt",
+          "prompt": "Else"
+        },
+        "destination_node_id": "n_conflict"
+      }
     },
     {
       "id": "n_conflict",
@@ -609,9 +1048,19 @@
       "tool_type": "local",
       "wait_for_result": true,
       "speak_during_execution": false,
-      "instruction": { "type": "static_text", "text": "Thank you, one moment." },
+      "instruction": {
+        "type": "static_text",
+        "text": "Thank you, one moment."
+      },
       "edges": [],
-      "else_edge": { "id": "e_cc_else", "transition_condition": { "type": "prompt", "prompt": "Else" }, "destination_node_id": "n_route_conflict" }
+      "else_edge": {
+        "id": "e_cc_else",
+        "transition_condition": {
+          "type": "prompt",
+          "prompt": "Else"
+        },
+        "destination_node_id": "n_route_conflict"
+      }
     },
     {
       "id": "n_route_conflict",
@@ -622,13 +1071,26 @@
           "id": "e_rc_hit",
           "transition_condition": {
             "type": "equation",
-            "equations": [{ "left": "{{conflict}}", "operator": "==", "right": "hit" }],
+            "equations": [
+              {
+                "left": "{{conflict}}",
+                "operator": "==",
+                "right": "hit"
+              }
+            ],
             "operator": "&&"
           },
           "destination_node_id": "n_conflict_hold"
         }
       ],
-      "else_edge": { "id": "e_rc_else", "transition_condition": { "type": "prompt", "prompt": "Else" }, "destination_node_id": "n_create" }
+      "else_edge": {
+        "id": "e_rc_else",
+        "transition_condition": {
+          "type": "prompt",
+          "prompt": "Else"
+        },
+        "destination_node_id": "n_create"
+      }
     },
     {
       "id": "n_conflict_hold",
@@ -641,16 +1103,29 @@
       "edges": [
         {
           "id": "e_ch_ok",
-          "transition_condition": { "type": "prompt", "prompt": "Caller confirms a number or accepts the callback" },
+          "transition_condition": {
+            "type": "prompt",
+            "prompt": "Caller confirms a number or accepts the callback"
+          },
           "destination_node_id": "n_message_conflict"
         },
         {
           "id": "e_ch_person",
-          "transition_condition": { "type": "prompt", "prompt": "Caller insists on a person now, argues, or is abusive" },
+          "transition_condition": {
+            "type": "prompt",
+            "prompt": "Caller insists on a person now, argues, or is abusive"
+          },
           "destination_node_id": "n_transfer_request"
         }
       ],
-      "else_edge": { "id": "e_ch_else", "transition_condition": { "type": "prompt", "prompt": "Else" }, "destination_node_id": "n_message_conflict" }
+      "else_edge": {
+        "id": "e_ch_else",
+        "transition_condition": {
+          "type": "prompt",
+          "prompt": "Else"
+        },
+        "destination_node_id": "n_message_conflict"
+      }
     },
     {
       "id": "n_message_conflict",
@@ -660,9 +1135,19 @@
       "tool_type": "local",
       "wait_for_result": true,
       "speak_during_execution": false,
-      "instruction": { "type": "static_text", "text": "One moment." },
+      "instruction": {
+        "type": "static_text",
+        "text": "One moment."
+      },
       "edges": [],
-      "else_edge": { "id": "e_mc_else", "transition_condition": { "type": "prompt", "prompt": "Else" }, "destination_node_id": "n_end" }
+      "else_edge": {
+        "id": "e_mc_else",
+        "transition_condition": {
+          "type": "prompt",
+          "prompt": "Else"
+        },
+        "destination_node_id": "n_end"
+      }
     },
     {
       "id": "n_create",
@@ -672,9 +1157,19 @@
       "tool_type": "local",
       "wait_for_result": true,
       "speak_during_execution": false,
-      "instruction": { "type": "static_text", "text": "Opening your file now." },
+      "instruction": {
+        "type": "static_text",
+        "text": "Opening your file now."
+      },
       "edges": [],
-      "else_edge": { "id": "e_cr_else", "transition_condition": { "type": "prompt", "prompt": "Else" }, "destination_node_id": "n_sms_consent" }
+      "else_edge": {
+        "id": "e_cr_else",
+        "transition_condition": {
+          "type": "prompt",
+          "prompt": "Else"
+        },
+        "destination_node_id": "n_sms_consent"
+      }
     },
     {
       "id": "n_sms_consent",
@@ -687,16 +1182,29 @@
       "edges": [
         {
           "id": "e_sms_yes",
-          "transition_condition": { "type": "prompt", "prompt": "Caller clearly agrees to receive text messages" },
+          "transition_condition": {
+            "type": "prompt",
+            "prompt": "Caller clearly agrees to receive text messages"
+          },
           "destination_node_id": "n_record_consent"
         },
         {
           "id": "e_sms_no",
-          "transition_condition": { "type": "prompt", "prompt": "Caller declines text messages or says not to text them" },
+          "transition_condition": {
+            "type": "prompt",
+            "prompt": "Caller declines text messages or says not to text them"
+          },
           "destination_node_id": "n_record_consent"
         }
       ],
-      "else_edge": { "id": "e_sms_else", "transition_condition": { "type": "prompt", "prompt": "Else" }, "destination_node_id": "n_record_consent" }
+      "else_edge": {
+        "id": "e_sms_else",
+        "transition_condition": {
+          "type": "prompt",
+          "prompt": "Else"
+        },
+        "destination_node_id": "n_record_consent"
+      }
     },
     {
       "id": "n_record_consent",
@@ -706,9 +1214,19 @@
       "tool_type": "local",
       "wait_for_result": true,
       "speak_during_execution": false,
-      "instruction": { "type": "static_text", "text": "Noted." },
+      "instruction": {
+        "type": "static_text",
+        "text": "Noted."
+      },
       "edges": [],
-      "else_edge": { "id": "e_rsc_else", "transition_condition": { "type": "prompt", "prompt": "Else" }, "destination_node_id": "n_route_stage" }
+      "else_edge": {
+        "id": "e_rsc_else",
+        "transition_condition": {
+          "type": "prompt",
+          "prompt": "Else"
+        },
+        "destination_node_id": "n_route_stage"
+      }
     },
     {
       "id": "n_route_stage",
@@ -719,13 +1237,26 @@
           "id": "e_rs_qualified",
           "transition_condition": {
             "type": "equation",
-            "equations": [{ "left": "{{qualification}}", "operator": "==", "right": "qualified" }],
+            "equations": [
+              {
+                "left": "{{qualification}}",
+                "operator": "==",
+                "right": "qualified"
+              }
+            ],
             "operator": "&&"
           },
           "destination_node_id": "n_retainer"
         }
       ],
-      "else_edge": { "id": "e_rs_else", "transition_condition": { "type": "prompt", "prompt": "Else" }, "destination_node_id": "n_callback" }
+      "else_edge": {
+        "id": "e_rs_else",
+        "transition_condition": {
+          "type": "prompt",
+          "prompt": "Else"
+        },
+        "destination_node_id": "n_callback"
+      }
     },
     {
       "id": "n_retainer",
@@ -735,9 +1266,19 @@
       "tool_type": "local",
       "wait_for_result": true,
       "speak_during_execution": false,
-      "instruction": { "type": "static_text", "text": "Sending the paperwork now." },
+      "instruction": {
+        "type": "static_text",
+        "text": "Sending the paperwork now."
+      },
       "edges": [],
-      "else_edge": { "id": "e_ret_else", "transition_condition": { "type": "prompt", "prompt": "Else" }, "destination_node_id": "n_callback" }
+      "else_edge": {
+        "id": "e_ret_else",
+        "transition_condition": {
+          "type": "prompt",
+          "prompt": "Else"
+        },
+        "destination_node_id": "n_callback"
+      }
     },
     {
       "id": "n_callback",
@@ -747,9 +1288,19 @@
       "tool_type": "local",
       "wait_for_result": true,
       "speak_during_execution": false,
-      "instruction": { "type": "static_text", "text": "Let me get an attorney lined up." },
+      "instruction": {
+        "type": "static_text",
+        "text": "Let me get an attorney lined up."
+      },
       "edges": [],
-      "else_edge": { "id": "e_cb_else", "transition_condition": { "type": "prompt", "prompt": "Else" }, "destination_node_id": "n_readback" }
+      "else_edge": {
+        "id": "e_cb_else",
+        "transition_condition": {
+          "type": "prompt",
+          "prompt": "Else"
+        },
+        "destination_node_id": "n_readback"
+      }
     },
     {
       "id": "n_readback",
@@ -762,21 +1313,37 @@
       "edges": [
         {
           "id": "e_rb_more",
-          "transition_condition": { "type": "prompt", "prompt": "Caller has a question the firm facts can answer, such as the office address, hours, or how the callback works" },
+          "transition_condition": {
+            "type": "prompt",
+            "prompt": "Caller has a question the firm facts can answer, such as the office address, hours, or how the callback works"
+          },
           "destination_node_id": "n_question"
         },
         {
           "id": "e_rb_person",
-          "transition_condition": { "type": "prompt", "prompt": "Caller asks for a person or a lawyer right now, or raises a bill or a complaint" },
+          "transition_condition": {
+            "type": "prompt",
+            "prompt": "Caller asks for a person or a lawyer right now, or raises a bill or a complaint"
+          },
           "destination_node_id": "n_transfer_request"
         },
         {
           "id": "e_rb_done",
-          "transition_condition": { "type": "prompt", "prompt": "Caller says no, that is all, thanks, or goodbye" },
+          "transition_condition": {
+            "type": "prompt",
+            "prompt": "Caller says no, that is all, thanks, or goodbye"
+          },
           "destination_node_id": "n_confirm"
         }
       ],
-      "else_edge": { "id": "e_rb_else", "transition_condition": { "type": "prompt", "prompt": "Else" }, "destination_node_id": "n_confirm" }
+      "else_edge": {
+        "id": "e_rb_else",
+        "transition_condition": {
+          "type": "prompt",
+          "prompt": "Else"
+        },
+        "destination_node_id": "n_confirm"
+      }
     },
     {
       "id": "n_question",
@@ -789,16 +1356,29 @@
       "edges": [
         {
           "id": "e_qn_done",
-          "transition_condition": { "type": "prompt", "prompt": "Caller says no, that is all, thanks, or goodbye" },
+          "transition_condition": {
+            "type": "prompt",
+            "prompt": "Caller says no, that is all, thanks, or goodbye"
+          },
           "destination_node_id": "n_confirm"
         },
         {
           "id": "e_qn_person",
-          "transition_condition": { "type": "prompt", "prompt": "Caller asks for a person or raises a bill or a complaint" },
+          "transition_condition": {
+            "type": "prompt",
+            "prompt": "Caller asks for a person or raises a bill or a complaint"
+          },
           "destination_node_id": "n_transfer_request"
         }
       ],
-      "else_edge": { "id": "e_qn_else", "transition_condition": { "type": "prompt", "prompt": "Else" }, "destination_node_id": "n_confirm" }
+      "else_edge": {
+        "id": "e_qn_else",
+        "transition_condition": {
+          "type": "prompt",
+          "prompt": "Else"
+        },
+        "destination_node_id": "n_confirm"
+      }
     },
     {
       "id": "n_confirm",
@@ -808,9 +1388,19 @@
       "tool_type": "local",
       "wait_for_result": true,
       "speak_during_execution": false,
-      "instruction": { "type": "static_text", "text": "" },
+      "instruction": {
+        "type": "static_text",
+        "text": ""
+      },
       "edges": [],
-      "else_edge": { "id": "e_cf_else", "transition_condition": { "type": "prompt", "prompt": "Else" }, "destination_node_id": "n_end" }
+      "else_edge": {
+        "id": "e_cf_else",
+        "transition_condition": {
+          "type": "prompt",
+          "prompt": "Else"
+        },
+        "destination_node_id": "n_end"
+      }
     },
     {
       "id": "n_wrap",
@@ -823,16 +1413,29 @@
       "edges": [
         {
           "id": "e_wr_done",
-          "transition_condition": { "type": "prompt", "prompt": "Caller says no, that is all, thanks, or goodbye" },
+          "transition_condition": {
+            "type": "prompt",
+            "prompt": "Caller says no, that is all, thanks, or goodbye"
+          },
           "destination_node_id": "n_end"
         },
         {
           "id": "e_wr_person",
-          "transition_condition": { "type": "prompt", "prompt": "Caller asks for a person" },
+          "transition_condition": {
+            "type": "prompt",
+            "prompt": "Caller asks for a person"
+          },
           "destination_node_id": "n_transfer_request"
         }
       ],
-      "else_edge": { "id": "e_wr_else", "transition_condition": { "type": "prompt", "prompt": "Else" }, "destination_node_id": "n_end" }
+      "else_edge": {
+        "id": "e_wr_else",
+        "transition_condition": {
+          "type": "prompt",
+          "prompt": "Else"
+        },
+        "destination_node_id": "n_end"
+      }
     },
     {
       "id": "n_transfer_request",
@@ -845,24 +1448,43 @@
       "edges": [
         {
           "id": "e_tr_yes",
-          "transition_condition": { "type": "prompt", "prompt": "Caller accepts being passed to the team, or asked for a person in the first place" },
+          "transition_condition": {
+            "type": "prompt",
+            "prompt": "Caller accepts being passed to the team, or asked for a person in the first place"
+          },
           "destination_node_id": "n_transfer"
         },
         {
           "id": "e_tr_no",
-          "transition_condition": { "type": "prompt", "prompt": "Caller declines the transfer and wants to carry on with the intake instead" },
+          "transition_condition": {
+            "type": "prompt",
+            "prompt": "Caller declines the transfer and wants to carry on with the intake instead"
+          },
           "destination_node_id": "n_questions"
         }
       ],
-      "else_edge": { "id": "e_tr_else", "transition_condition": { "type": "prompt", "prompt": "Else" }, "destination_node_id": "n_transfer" }
+      "else_edge": {
+        "id": "e_tr_else",
+        "transition_condition": {
+          "type": "prompt",
+          "prompt": "Else"
+        },
+        "destination_node_id": "n_transfer"
+      }
     },
     {
       "id": "n_transfer",
       "type": "transfer_call",
       "name": "19a. Warm transfer to the intake desk",
       "speak_during_execution": true,
-      "instruction": { "type": "static_text", "text": "Putting you through now, one moment." },
-      "transfer_destination": { "type": "predefined", "number": "{{intake_desk_number}}" },
+      "instruction": {
+        "type": "static_text",
+        "text": "Putting you through now, one moment."
+      },
+      "transfer_destination": {
+        "type": "predefined",
+        "number": "{{intake_desk_number}}"
+      },
       "transfer_option": {
         "type": "warm_transfer",
         "show_transferee_as_caller": true,
@@ -870,7 +1492,10 @@
         "transfer_ring_duration_ms": 30000,
         "on_hold_music": "relaxing_sound",
         "opt_out_human_detection": false,
-        "public_handoff_option": { "type": "static_message", "message": "I have a caller on the line for the intake team." },
+        "public_handoff_option": {
+          "type": "static_message",
+          "message": "I have a caller on the line for the intake team."
+        },
         "private_handoff_option": {
           "type": "prompt",
           "prompt": "In one sentence, give the caller's first name if you know it and the category of what they need, for example 'Jordan has a car accident intake' or 'a caller has a billing question'. Never state a date of birth, an address, a phone number, medical detail, or anything about another client."
@@ -878,7 +1503,10 @@
       },
       "edge": {
         "id": "e_tx_failed",
-        "transition_condition": { "type": "prompt", "prompt": "Transfer failed" },
+        "transition_condition": {
+          "type": "prompt",
+          "prompt": "Transfer failed"
+        },
         "destination_node_id": "n_transfer_fallback"
       },
       "edges": []
@@ -894,16 +1522,29 @@
       "edges": [
         {
           "id": "e_tf_ok",
-          "transition_condition": { "type": "prompt", "prompt": "Caller accepts a callback or gives a name or number" },
+          "transition_condition": {
+            "type": "prompt",
+            "prompt": "Caller accepts a callback or gives a name or number"
+          },
           "destination_node_id": "n_message_transfer"
         },
         {
           "id": "e_tf_no",
-          "transition_condition": { "type": "prompt", "prompt": "Caller declines a callback or wants to hang up" },
+          "transition_condition": {
+            "type": "prompt",
+            "prompt": "Caller declines a callback or wants to hang up"
+          },
           "destination_node_id": "n_end"
         }
       ],
-      "else_edge": { "id": "e_tf_else", "transition_condition": { "type": "prompt", "prompt": "Else" }, "destination_node_id": "n_message_transfer" }
+      "else_edge": {
+        "id": "e_tf_else",
+        "transition_condition": {
+          "type": "prompt",
+          "prompt": "Else"
+        },
+        "destination_node_id": "n_message_transfer"
+      }
     },
     {
       "id": "n_message_transfer",
@@ -913,49 +1554,91 @@
       "tool_type": "local",
       "wait_for_result": true,
       "speak_during_execution": false,
-      "instruction": { "type": "static_text", "text": "One moment." },
+      "instruction": {
+        "type": "static_text",
+        "text": "One moment."
+      },
       "edges": [],
-      "else_edge": { "id": "e_mt_else", "transition_condition": { "type": "prompt", "prompt": "Else" }, "destination_node_id": "n_wrap" }
+      "else_edge": {
+        "id": "e_mt_else",
+        "transition_condition": {
+          "type": "prompt",
+          "prompt": "Else"
+        },
+        "destination_node_id": "n_wrap"
+      }
     },
     {
       "id": "n_spam",
       "type": "conversation",
       "name": "20. Spam and sales calls. Global",
-      "instruction": { "type": "static_text", "text": "This line is for people who have been injured, so I will let you go. Thanks, goodbye." },
+      "instruction": {
+        "type": "static_text",
+        "text": "This line is for people who have been injured, so I will let you go. Thanks, goodbye."
+      },
       "edges": [
         {
           "id": "e_spam_real",
-          "transition_condition": { "type": "prompt", "prompt": "Caller says they actually were hurt and want to talk about it" },
+          "transition_condition": {
+            "type": "prompt",
+            "prompt": "Caller says they actually were hurt and want to talk about it"
+          },
           "destination_node_id": "n_classify"
         }
       ],
-      "else_edge": { "id": "e_spam_else", "transition_condition": { "type": "prompt", "prompt": "Else" }, "destination_node_id": "n_end" }
+      "else_edge": {
+        "id": "e_spam_else",
+        "transition_condition": {
+          "type": "prompt",
+          "prompt": "Else"
+        },
+        "destination_node_id": "n_end"
+      }
     },
     {
       "id": "n_no_response",
       "type": "conversation",
       "name": "21. Silence, ask once then let them go",
-      "instruction": { "type": "static_text", "text": "I cannot hear anything, are you still there?" },
+      "instruction": {
+        "type": "static_text",
+        "text": "I cannot hear anything, are you still there?"
+      },
       "edges": [
         {
           "id": "e_nr_speaks",
-          "transition_condition": { "type": "prompt", "prompt": "Caller speaks and describes an injury or what happened" },
+          "transition_condition": {
+            "type": "prompt",
+            "prompt": "Caller speaks and describes an injury or what happened"
+          },
           "destination_node_id": "n_classify"
         },
         {
           "id": "e_nr_person",
-          "transition_condition": { "type": "prompt", "prompt": "Caller speaks and asks for a person" },
+          "transition_condition": {
+            "type": "prompt",
+            "prompt": "Caller speaks and asks for a person"
+          },
           "destination_node_id": "n_transfer_request"
         }
       ],
-      "else_edge": { "id": "e_nr_else", "transition_condition": { "type": "prompt", "prompt": "Else" }, "destination_node_id": "n_end" }
+      "else_edge": {
+        "id": "e_nr_else",
+        "transition_condition": {
+          "type": "prompt",
+          "prompt": "Else"
+        },
+        "destination_node_id": "n_end"
+      }
     },
     {
       "id": "n_end",
       "type": "end",
       "name": "22. End",
       "speak_during_execution": true,
-      "instruction": { "type": "static_text", "text": "Thank you for calling {{firm_name}}. Take care of yourself, goodbye." },
+      "instruction": {
+        "type": "static_text",
+        "text": "Thank you for calling {{firm_name}}. Take care of yourself, goodbye."
+      },
       "edges": []
     }
   ]

@@ -113,6 +113,17 @@ async function main() {
   const [stage] = await q<{ stage: string }>(`select stage from demo_matters where id = $1`, [matter.matter_id]);
   expect(stage.stage === "retainer_sent", `matter must move to retainer_sent, got ${stage.stage}`);
 
+  heading("half an intake is not scored");
+  const half = (await runTool(call("call_half", "qualify_lead", { case_type: "auto", incident_date: "today", treatment: "", fault: "", prior_counsel: "no" }))) as { status: string; questions: string[] };
+  console.log("half:", half.status, half.questions);
+  expect(half.status === "need_answers" && half.questions.length === 2, "blank treatment and fault must come back as need_answers");
+
+  heading("same day accident, other driver at fault, no doctor yet");
+  const fresh = (await runTool(call("call_fresh", "qualify_lead", { case_type: "auto", incident_date: "today around noon", treatment: "no", fault: "other", police_report: "unknown", prior_counsel: "no" }))) as { status: string; score: number; flags: string[] };
+  console.log("fresh:", fresh.status, fresh.score, fresh.flags);
+  expect(fresh.status === "qualified" && fresh.flags.includes("No treatment yet"), "a clear liability lead qualifies even before the first doctor visit");
+  expect(faultFrom("a car hit me while I was on the crosswalk") === "other", "being hit is not the caller's fault");
+
   // ---------------------------------------------------------------- scene 2
   heading("scene two, past the filing deadline");
   const C2 = "call_late_002";
@@ -183,7 +194,7 @@ async function main() {
             (select coalesce(sum(fee_value),0)::float from demo_calls where matter_id is not null) as fee`,
   );
   console.log(totals);
-  expect(totals.qualified === 1 && totals.retainers === 1, "one qualified lead, one retainer");
+  expect(totals.qualified === 2 && totals.retainers === 1, "two qualified leads (one scored only), one retainer");
 
   console.log("\nAll checks passed.\n");
 }

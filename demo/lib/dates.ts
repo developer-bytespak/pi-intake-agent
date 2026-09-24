@@ -111,6 +111,9 @@ export function parseIncidentDate(raw: unknown, now: Date = new Date()): ParsedD
 export function yesNo(raw: unknown): "yes" | "no" | "unknown" {
   const s = String(raw ?? "").trim().toLowerCase();
   if (!s) return "unknown";
+  if (s === "yes" || s === "true") return "yes";
+  if (s === "no" || s === "false") return "no";
+  if (s === "unknown") return "unknown";
   if (/^(no|nope|not yet|never|haven't|havent|no i)/.test(s) || /\b(no|not yet|haven't|havent|never)\b/.test(s) && !/\byes\b/.test(s)) return "no";
   if (/\b(yes|yeah|yep|i did|i have|went to|saw a|been to|er\b|emergency room|urgent care|hospital|doctor|chiropract)/.test(s)) return "yes";
   return "unknown";
@@ -119,8 +122,9 @@ export function yesNo(raw: unknown): "yes" | "no" | "unknown" {
 export function faultFrom(raw: unknown): "other" | "self" | "shared" | "unknown" {
   const s = String(raw ?? "").trim().toLowerCase();
   if (!s) return "unknown";
+  if (s === "other" || s === "self" || s === "shared" || s === "unknown") return s;
   if (/\b(both|shared|partly|partially|50|fifty|we both)\b/.test(s)) return "shared";
-  if (/\b(my fault|i was at fault|i caused|i hit|i ran|me\b)/.test(s) && !/\b(not my|wasn't my|wasnt my|other|they|he|she|driver)\b/.test(s)) return "self";
+  if (/\b(my fault|i was at fault|i caused|i hit (him|her|them|the)|i ran (a|the|into)|my own fault)\b/.test(s) && !/\b(not my|wasn't my|wasnt my|other|they|he|she|driver|hit me)\b/.test(s)) return "self";
   if (/\b(other|they|he|she|the driver|truck|store|owner|company|not my|wasn't my|wasnt my|ran a red|rear ended|hit me|their)\b/.test(s)) return "other";
   return "unknown";
 }

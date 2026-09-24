@@ -110,9 +110,26 @@ async function qualifyLead(req: ToolRequest): Promise<ToolResponse> {
   const treated = yesNo(req.args.treatment);
   const fault = faultFrom(req.args.fault);
   const policeRaw = String(req.args.police_report ?? "").toLowerCase();
-  const policeReport = policeRaw ? /yes|true|report|came|they did/.test(policeRaw) && !/^no\b/.test(policeRaw) : null;
+  const policeReport =
+    !policeRaw || policeRaw === "unknown" ? null : policeRaw === "yes" || policeRaw === "true" ? true : policeRaw === "no" || policeRaw === "false" ? false : /yes|report|came|they did/.test(policeRaw) && !/^no\b/.test(policeRaw);
   const priorCounsel = yesNo(req.args.prior_counsel);
   const incidentState = String(req.args.incident_state ?? "").trim() || null;
+
+  // Half an intake is not scored. The agent gets told what is missing and
+  // asks, which is what a paralegal would do rather than guess.
+  const missing: string[] = [];
+  if (!parsed) missing.push(QUALIFYING_QUESTIONS[type.id]?.[0] ?? "When did it happen?");
+  if (treated === "unknown") missing.push("Were you hurt, and have you seen a doctor or been to the emergency room?");
+  if (fault === "unknown" && type.accepted) missing.push("Who do you think was at fault?");
+  if (priorCounsel === "unknown") missing.push("Have you already spoken to a lawyer about this?");
+  if (missing.length && type.accepted) {
+    await logPipeline(req.call.call_id, "lead_qualified", "running", `waiting on ${missing.length} answer${missing.length === 1 ? "" : "s"}`, Date.now() - started);
+    return {
+      status: "need_answers",
+      questions: missing,
+      say: missing.length === 1 ? "One more thing." : "A couple more things before I can go further.",
+    };
+  }
 
   const result: Qualification = qualify({
     caseType: type,
@@ -139,6 +156,7 @@ async function qualifyLead(req: ToolRequest): Promise<ToolResponse> {
     outcome: result.status,
     detail: {
       case_type: type.id,
+      answers: String(req.args.answers ?? "").slice(0, 300) || null,
       score: result.score,
       flags: result.flags,
       days_to_deadline: result.daysToDeadline,

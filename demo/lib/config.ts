@@ -314,7 +314,6 @@ export function qualify(input: QualifyInput): Qualification {
     score += 25;
     reasons.push("Medical treatment is documented.");
   } else if (input.treated === "no") {
-    score -= 10;
     flags.push("No treatment yet");
     reasons.push("No medical treatment yet. Intake will advise seeing a doctor.");
   }
