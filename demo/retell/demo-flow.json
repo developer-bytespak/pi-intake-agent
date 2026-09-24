@@ -519,6 +519,14 @@
           "destination_node_id": "n_classify"
         },
         {
+          "id": "e_open_question",
+          "transition_condition": {
+            "type": "prompt",
+            "prompt": "Caller asks a general question and has not described an injury: what the firm does, what services or case types it handles, hours, where the office is, how fees work, or how the process works"
+          },
+          "destination_node_id": "n_question_open"
+        },
+        {
           "id": "e_open_outbound_yes",
           "transition_condition": {
             "type": "prompt",
@@ -653,6 +661,49 @@
       }
     },
     {
+      "id": "n_question_open",
+      "type": "conversation",
+      "name": "1Q. General question before any injury is described",
+      "instruction": {
+        "type": "prompt",
+        "text": "Answer using ONLY the firm facts in the global prompt: the case types the firm takes and refers out, the office address and hours, contingency with no fee unless the case is won, and that an attorney calls back after intake. Two or three sentences. Never a case value or legal advice. Then ask: \"Have you or someone close to you been hurt? If so, I can take the first details now.\""
+      },
+      "edges": [
+        {
+          "id": "e_qo_injury",
+          "transition_condition": {
+            "type": "prompt",
+            "prompt": "Caller describes an injury, an accident, a fall, a bite or a death in the family"
+          },
+          "destination_node_id": "n_classify"
+        },
+        {
+          "id": "e_qo_person",
+          "transition_condition": {
+            "type": "prompt",
+            "prompt": "Caller asks for a person or a lawyer right now, or raises a bill or a complaint"
+          },
+          "destination_node_id": "n_transfer_request"
+        },
+        {
+          "id": "e_qo_done",
+          "transition_condition": {
+            "type": "prompt",
+            "prompt": "Caller says no, nobody is hurt, that is all, thanks or goodbye"
+          },
+          "destination_node_id": "n_end"
+        }
+      ],
+      "else_edge": {
+        "id": "e_qo_else",
+        "transition_condition": {
+          "type": "prompt",
+          "prompt": "Else"
+        },
+        "destination_node_id": "n_end"
+      }
+    },
+    {
       "id": "n_classify",
       "type": "function",
       "name": "2. classify_intake, on the caller's own words",
@@ -710,9 +761,17 @@
       "name": "4. Qualifying questions, one at a time",
       "instruction": {
         "type": "prompt",
-        "text": "Say the classify_intake 'say' text first, exactly as it came back: {{classify_say}}\n\nThen ask the questions from the classify_intake 'questions' array, in the order they came back, one at a time, waiting for an answer before the next. Do not add questions. Do not comment on the answers beyond a brief acknowledgement. If the caller has already answered one of them in what they said earlier, skip it. If they do not know an answer, accept that and move on. If they mention a head injury, chest pain or bleeding right now, give the emergency line from the global prompt first.\n\nAll four answers are needed before qualify_lead is called: when it happened, treatment, who was at fault, and whether they already have a lawyer. Do not move on with any of them blank; ask each one plainly. \"I don't know\" is an acceptable answer to fault."
+        "text": "Say the classify_intake 'say' text first, exactly as it came back: {{classify_say}}\n\nThen ask the questions from the classify_intake 'questions' array, in the order they came back, one at a time, waiting for an answer before the next. Do not add questions. Do not comment on the answers beyond a brief acknowledgement. If the caller has already answered one of them in what they said earlier, skip it. If they do not know an answer, accept that and move on. If they mention a head injury, chest pain or bleeding right now, give the emergency line from the global prompt first.\n\nAll four answers are needed before qualify_lead is called: when it happened, treatment, who was at fault, and whether they already have a lawyer. Do not move on with any of them blank; ask each one plainly. \"I don't know\" is an acceptable answer to fault.\n\nIf a question has been asked twice and the caller still has not answered it, or they keep asking for something else, stop. Say: \"No problem. Let me take your name and number and have one of our intake specialists call you.\" and move on to take the message."
       },
       "edges": [
+        {
+          "id": "e_n_questions_exit",
+          "transition_condition": {
+            "type": "prompt",
+            "prompt": "Caller has been asked the same question twice and still has not answered it, keeps asking for something else instead, or says they would rather someone called them"
+          },
+          "destination_node_id": "n_message_details"
+        },
         {
           "id": "e_q_done",
           "transition_condition": {
@@ -745,9 +804,17 @@
       "name": "4b. Missing answers, ask them before scoring",
       "instruction": {
         "type": "prompt",
-        "text": "Say the qualify_lead 'say' text: {{qualify_say}} Then ask the questions from the qualify_lead 'questions' list, one at a time, waiting for each answer. Do not ask anything that was already answered. When they are answered, call qualify_lead again with every answer normalised: treatment yes, no or unknown; fault other, self, shared or unknown; police_report yes, no or unknown; prior_counsel yes, no or unknown."
+        "text": "Say the qualify_lead 'say' text: {{qualify_say}} Then ask the questions from the qualify_lead 'questions' list, one at a time, waiting for each answer. Do not ask anything that was already answered. When they are answered, call qualify_lead again with every answer normalised: treatment yes, no or unknown; fault other, self, shared or unknown; police_report yes, no or unknown; prior_counsel yes, no or unknown.\n\nIf a question has been asked twice and the caller still has not answered it, or they keep asking for something else, stop. Say: \"No problem. Let me take your name and number and have one of our intake specialists call you.\" and move on to take the message."
       },
       "edges": [
+        {
+          "id": "e_n_questions_more_exit",
+          "transition_condition": {
+            "type": "prompt",
+            "prompt": "Caller has been asked the same question twice and still has not answered it, keeps asking for something else instead, or says they would rather someone called them"
+          },
+          "destination_node_id": "n_message_details"
+        },
         {
           "id": "e_qm_done",
           "transition_condition": {
@@ -962,7 +1029,7 @@
       "name": "7D2. Name and number for a callback",
       "instruction": {
         "type": "prompt",
-        "text": "Ask, one at a time and only for what you do not already have: \"Can I take your name?\" and \"And the best number to reach you on?\" Then call take_message with reason declined."
+        "text": "Ask, one at a time and only for what you do not already have: \"Can I take your name?\" and \"And the best number to reach you on?\" Then call take_message with reason declined if the lead was declined by the firm's rules, otherwise callback_requested."
       },
       "edges": [
         {

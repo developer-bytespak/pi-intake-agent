@@ -122,7 +122,13 @@ async function qualifyLead(req: ToolRequest): Promise<ToolResponse> {
   if (treated === "unknown") missing.push("Were you hurt, and have you seen a doctor or been to the emergency room?");
   if (fault === "unknown" && type.accepted) missing.push("Who do you think was at fault?");
   if (priorCounsel === "unknown") missing.push("Have you already spoken to a lawyer about this?");
-  if (missing.length && type.accepted) {
+  const [{ n: asked }] = await q<{ n: number }>(
+    `select count(*)::int as n from pipeline_events where call_id = $1 and step = 'lead_qualified' and detail like 'waiting on%'`,
+    [req.call.call_id],
+  );
+  // Twice is enough. A caller who will not answer gets an attorney callback
+  // on what we have rather than the same question a sixth time.
+  if (missing.length && type.accepted && asked < 2) {
     await logPipeline(req.call.call_id, "lead_qualified", "running", `waiting on ${missing.length} answer${missing.length === 1 ? "" : "s"}`, Date.now() - started);
     return {
       status: "need_answers",
