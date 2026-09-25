@@ -1,5 +1,8 @@
 import type { Metadata, Viewport } from "next";
+import { ClerkProvider } from "@clerk/nextjs";
 import "./globals.css";
+
+const clerkConfigured = Boolean(process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY && process.env.CLERK_SECRET_KEY);
 
 const SITE_URL = "https://pi-intake-agent.vercel.app";
 const TITLE = "AI Intake for Personal Injury Law Firms | Answers 24/7";
@@ -48,6 +51,9 @@ export const viewport: Viewport = {
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
+  // Clerk wraps the tree only when its keys exist, so the public demo still
+  // builds and deploys before the Clerk application is created.
+  const body = clerkConfigured ? <ClerkProvider afterSignOutUrl="/">{children}</ClerkProvider> : children;
   return (
     <html lang="en">
       <head>
@@ -73,7 +79,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           }}
         />
       </head>
-      <body>{children}</body>
+      <body>{body}</body>
     </html>
   );
 }

@@ -14,6 +14,8 @@ import { useEffect, useMemo, useState, type FormEvent } from "react";
 import type { LeadRow } from "@/app/hooks/useDemoState";
 
 export interface IntakeFormProps {
+  /** Which workspace the lead lands in. */
+  scope?: "demo" | "app";
   consentText: string;
   outbound: boolean;
   /** The most recent lead, so the form can show what happened to it. */
@@ -27,7 +29,7 @@ function speed(ms: number): string {
   return `${(ms / 1000).toFixed(1)} s`;
 }
 
-export default function IntakeForm({ consentText, outbound, latestLead, onSubmitted }: IntakeFormProps) {
+export default function IntakeForm({ scope = "demo", consentText, outbound, latestLead, onSubmitted }: IntakeFormProps) {
   const [first, setFirst] = useState("");
   const [last, setLast] = useState("");
   const [phone, setPhone] = useState("");
@@ -59,7 +61,7 @@ export default function IntakeForm({ consentText, outbound, latestLead, onSubmit
     setError(null);
     setBusy(true);
     try {
-      const res = await fetch("/api/lead", {
+      const res = await fetch(`/api/lead?scope=${scope}`, {
         method: "POST",
         headers: { "content-type": "application/json" },
         body: JSON.stringify({ first_name: first, last_name: last, phone, email, description, consent }),

@@ -7,15 +7,58 @@
  * way, because the firm wants a record of what the agent did regardless of
  * where the matter landed.
  *
+ * Every table carries tenant_id. The demo tenant owns the public page; each
+ * firm created from the admin console owns its own rows. See lib/tenancy.ts.
+ *
  * Kept as a TypeScript string so it bundles into serverless functions with no
- * file system access at runtime.
+ * file system access at runtime. Every statement is idempotent and the
+ * "alter table" lines migrate a database created before tenancy in place.
  */
 
 export const SCHEMA_SQL = `
+-- ---------- tenancy ----------
+-- One row per customer. The demo tenant is created at bootstrap and backs
+-- the public page; every other row is created from the admin console.
+
+create table if not exists tenants (
+  id               text primary key,
+  name             text not null,
+  short_name       text not null,
+  tagline          text,
+  main_number      text,
+  timezone         text not null default 'America/New_York',
+  plan             text not null default 'trial',
+  included_minutes integer not null default 0,
+  status           text not null default 'invited',   -- invited, active, suspended
+  retell_agent_id  text,
+  phone_number     text,
+  config           jsonb not null default '{}'::jsonb,
+  created_at       timestamptz not null default now(),
+  updated_at       timestamptz not null default now()
+);
+create unique index if not exists tenants_agent on tenants (retell_agent_id) where retell_agent_id is not null;
+
+create table if not exists memberships (
+  id                  bigserial primary key,
+  tenant_id           text not null references tenants (id) on delete cascade,
+  email               text not null,
+  name                text,
+  role                text not null default 'owner',     -- owner, staff
+  clerk_user_id       text,
+  clerk_invitation_id text,
+  invite_status       text not null default 'pending',   -- pending, sent, accepted, failed
+  invite_error        text,
+  invited_at          timestamptz not null default now(),
+  accepted_at         timestamptz,
+  unique (tenant_id, email)
+);
+create index if not exists memberships_user on memberships (clerk_user_id);
+
 -- ---------- stand-in for Lawmatics ----------
 
 create table if not exists demo_contacts (
   id               text primary key,
+  tenant_id        text not null default 'demo',
   first_name       text not null,
   last_name        text not null,
   phone            text not null,
@@ -28,6 +71,7 @@ create index if not exists demo_contacts_phone on demo_contacts (phone);
 
 create table if not exists demo_matters (
   id               text primary key,
+  tenant_id        text not null default 'demo',
   reference        text not null,
   contact_id       text not null,
   case_type        text not null,
@@ -54,6 +98,7 @@ create index if not exists demo_matters_created_at on demo_matters (created_at);
 -- is checked against the adverse parties of open matters and vice versa.
 create table if not exists demo_parties (
   id         bigserial primary key,
+  tenant_id        text not null default 'demo',
   matter_id  text,
   name       text not null,
   role       text not null,               -- client, adverse, witness
@@ -62,6 +107,7 @@ create table if not exists demo_parties (
 
 create table if not exists demo_tasks (
   id          bigserial primary key,
+  tenant_id        text not null default 'demo',
   created_at  timestamptz not null default now(),
   matter_id   text,
   call_id     text,
@@ -78,6 +124,7 @@ create index if not exists demo_tasks_created_at on demo_tasks (created_at);
 
 create table if not exists demo_leads (
   id            bigserial primary key,
+  tenant_id        text not null default 'demo',
   created_at    timestamptz not null default now(),
   first_name    text not null,
   last_name     text not null,
@@ -97,6 +144,7 @@ create table if not exists demo_leads (
 
 create table if not exists call_events (
   id            bigserial primary key,
+  tenant_id        text not null default 'demo',
   occurred_at   timestamptz not null default now(),
   call_id       text not null,
   action        text not null,
@@ -107,6 +155,7 @@ create index if not exists call_events_call_id on call_events (call_id);
 
 create table if not exists pipeline_events (
   id          bigserial primary key,
+  tenant_id        text not null default 'demo',
   occurred_at timestamptz not null default now(),
   call_id     text not null,
   step        text not null,
@@ -120,6 +169,7 @@ create index if not exists pipeline_events_call_id on pipeline_events (call_id);
 -- version, so the firm can show which words were said on which call.
 create table if not exists consent_events (
   id             bigserial primary key,
+  tenant_id        text not null default 'demo',
   occurred_at    timestamptz not null default now(),
   call_id        text,
   lead_id        bigint,
@@ -134,6 +184,7 @@ create index if not exists consent_events_call_id on consent_events (call_id);
 -- e-sign provider are not connected these are queued rather than sent.
 create table if not exists outbound_messages (
   id          bigserial primary key,
+  tenant_id        text not null default 'demo',
   created_at  timestamptz not null default now(),
   call_id     text,
   matter_id   text,
@@ -151,6 +202,7 @@ create index if not exists outbound_messages_created_at on outbound_messages (cr
 
 create table if not exists demo_calls (
   call_id       text primary key,
+  tenant_id        text not null default 'demo',
   started_at    timestamptz not null default now(),
   ended_at      timestamptz,
   channel       text not null default 'web',   -- web, phone, outbound
@@ -163,10 +215,39 @@ create table if not exists demo_calls (
   fee_value     numeric(10,2),
   summary       text
 );
+
+-- ---------- migration for databases created before tenancy ----------
+alter table demo_contacts add column if not exists tenant_id text not null default 'demo';
+alter table demo_matters add column if not exists tenant_id text not null default 'demo';
+alter table demo_parties add column if not exists tenant_id text not null default 'demo';
+alter table demo_tasks add column if not exists tenant_id text not null default 'demo';
+alter table demo_leads add column if not exists tenant_id text not null default 'demo';
+alter table call_events add column if not exists tenant_id text not null default 'demo';
+alter table pipeline_events add column if not exists tenant_id text not null default 'demo';
+alter table consent_events add column if not exists tenant_id text not null default 'demo';
+alter table outbound_messages add column if not exists tenant_id text not null default 'demo';
+alter table demo_calls add column if not exists tenant_id text not null default 'demo';
+create index if not exists demo_contacts_tenant on demo_contacts (tenant_id);
+create index if not exists demo_matters_tenant on demo_matters (tenant_id, created_at);
+create index if not exists demo_tasks_tenant on demo_tasks (tenant_id, created_at);
+create index if not exists demo_leads_tenant on demo_leads (tenant_id, created_at);
+create index if not exists call_events_tenant on call_events (tenant_id, id);
+create index if not exists pipeline_events_tenant on pipeline_events (tenant_id, id);
+create index if not exists consent_events_tenant on consent_events (tenant_id, id);
+create index if not exists outbound_messages_tenant on outbound_messages (tenant_id, id);
+create index if not exists demo_calls_tenant on demo_calls (tenant_id, started_at);
 `;
 
-export const TRUNCATE_SQL = `
-truncate table pipeline_events, call_events, consent_events, outbound_messages, demo_tasks,
-               demo_leads, demo_calls, demo_parties, demo_matters, demo_contacts
-  restart identity cascade;
-`;
+/** The tables that hold a tenant's data, in an order safe to clear. */
+export const TENANT_TABLES = [
+  "pipeline_events",
+  "call_events",
+  "consent_events",
+  "outbound_messages",
+  "demo_calls",
+  "demo_leads",
+  "demo_tasks",
+  "demo_parties",
+  "demo_matters",
+  "demo_contacts",
+] as const;

@@ -12,6 +12,7 @@
  */
 
 import { q } from "./db";
+import { tenantId } from "./tenancy";
 
 export type MessageTarget = "lead" | "attorney" | "intake";
 export type Channel = "sms" | "email" | "esign";
@@ -62,9 +63,9 @@ export async function sendMessage(args: {
   const provider = args.channel === "sms" ? smsMode() : args.channel === "esign" ? esignMode() : "preview";
 
   const rows = await q<{ id: number }>(
-    `insert into outbound_messages (call_id, matter_id, to_address, to_label, channel, subject, body, provider, status)
-     values ($1,$2,$3,$4,$5,$6,$7,$8,'queued') returning id`,
-    [args.callId ?? null, args.matterId ?? null, args.to, args.label, args.channel, args.subject ?? null, args.body, provider],
+    `insert into outbound_messages (call_id, matter_id, to_address, to_label, channel, subject, body, provider, status, tenant_id)
+     values ($1,$2,$3,$4,$5,$6,$7,$8,'queued',$9) returning id`,
+    [args.callId ?? null, args.matterId ?? null, args.to, args.label, args.channel, args.subject ?? null, args.body, provider, tenantId()],
   );
   const id = rows[0]?.id ?? 0;
 

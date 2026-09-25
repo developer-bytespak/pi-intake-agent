@@ -295,7 +295,10 @@ export interface UseDemoState {
   clear: () => void;
 }
 
-export function useDemoState(): UseDemoState {
+/** Which workspace the poll reads: the public demo, or the signed-in one. */
+export type Scope = "demo" | "app";
+
+export function useDemoState(scope: Scope = "demo"): UseDemoState {
   const [state, setState] = useState<DemoState>(INITIAL);
   const cursors = useRef<Cursors>({ pipeline: 0, events: 0, messages: 0, consents: 0 });
   const generation = useRef(0);
@@ -335,7 +338,7 @@ export function useDemoState(): UseDemoState {
 
       const mine = generation.current;
       const c = cursors.current;
-      const url = `/api/state?pipeline=${c.pipeline}&events=${c.events}&messages=${c.messages}&consents=${c.consents}`;
+      const url = `/api/state?scope=${scope}&pipeline=${c.pipeline}&events=${c.events}&messages=${c.messages}&consents=${c.consents}`;
 
       try {
         const response = await fetch(url, { cache: "no-store" });
@@ -388,7 +391,7 @@ export function useDemoState(): UseDemoState {
       if (timer) clearTimeout(timer);
       document.removeEventListener("visibilitychange", wake);
     };
-  }, []);
+  }, [scope]);
 
   return { state, clear };
 }

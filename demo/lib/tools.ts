@@ -33,6 +33,7 @@ import {
 } from "./config";
 import { faultFrom, parseIncidentDate, yesNo } from "./dates";
 import { q } from "./db";
+import { tenantId } from "./tenancy";
 import { lawmatics } from "./lawmatics";
 import { retainerLink, sendMessage } from "./messages";
 import {
@@ -123,8 +124,8 @@ async function qualifyLead(req: ToolRequest): Promise<ToolResponse> {
   if (fault === "unknown" && type.accepted) missing.push("Who do you think was at fault?");
   if (priorCounsel === "unknown") missing.push("Have you already spoken to a lawyer about this?");
   const [{ n: asked }] = await q<{ n: number }>(
-    `select count(*)::int as n from pipeline_events where call_id = $1 and step = 'lead_qualified' and detail like 'waiting on%'`,
-    [req.call.call_id],
+    `select count(*)::int as n from pipeline_events where tenant_id = $2 and call_id = $1 and step = 'lead_qualified' and detail like 'waiting on%'`,
+    [req.call.call_id, tenantId()],
   );
   // Twice is enough. A caller who will not answer gets an attorney callback
   // on what we have rather than the same question a sixth time.
@@ -322,7 +323,7 @@ async function createMatter(req: ToolRequest): Promise<ToolResponse> {
   });
 
   await markMatter(req.call.call_id, matter.id, stage === "declined" || stage === "referred" ? "other" : type.id);
-  if (leadId) await q(`update demo_leads set matter_id = $2 where id = $1`, [leadId, matter.id]);
+  if (leadId) await q(`update demo_leads set matter_id = $2 where id = $1 and tenant_id = $3`, [leadId, matter.id, tenantId()]);
 
   await logPipeline(
     req.call.call_id,

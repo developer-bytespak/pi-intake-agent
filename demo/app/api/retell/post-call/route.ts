@@ -6,6 +6,7 @@
 
 import { NextRequest, NextResponse } from "next/server";
 import { closeCall, logCallEvent, logPipeline, markLeadContacted, touchCall } from "@/lib/ops";
+import { tenantByAgentId, withTenant } from "@/lib/tenancy";
 import { signatureRequired, verifyRetellSignature } from "@/lib/retell";
 import { isAfterHours } from "@/lib/config";
 
@@ -19,6 +20,7 @@ export async function POST(request: NextRequest) {
     event: string;
     call: {
       call_id: string;
+      agent_id?: string;
       from_number?: string;
       to_number?: string;
       direction?: string;
@@ -45,6 +47,10 @@ export async function POST(request: NextRequest) {
   const call = payload.call;
   if (!call?.call_id) return NextResponse.json({ error: "missing call_id" }, { status: 400 });
 
+  const tenant = await tenantByAgentId(call.agent_id);
+  if (!tenant) return NextResponse.json({ error: "unknown agent" }, { status: 404 });
+
+  return withTenant(tenant, async () => {
   const leadRaw = call.metadata?.lead_id;
   const leadId = Number(leadRaw) > 0 ? Number(leadRaw) : null;
   const outbound = leadId !== null || call.direction === "outbound";
@@ -91,6 +97,7 @@ export async function POST(request: NextRequest) {
   }
 
   return NextResponse.json({ received: true, ignored: payload.event });
+  });
 }
 
 export async function GET() {

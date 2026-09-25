@@ -56,12 +56,12 @@ function daysAgo(n: number, hour = 10): Date {
   return d;
 }
 
-export async function seed(): Promise<void> {
+export async function seed(tenantId = "demo"): Promise<void> {
   for (const c of DEMO_CONTACTS) {
     await raw(
-      `insert into demo_contacts (id, first_name, last_name, phone, email, source)
-       values ($1,$2,$3,$4,$5,'phone') on conflict (id) do nothing`,
-      [c.id, c.first, c.last, c.phone, c.email],
+      `insert into demo_contacts (id, first_name, last_name, phone, email, source, tenant_id)
+       values ($1,$2,$3,$4,$5,'phone',$6) on conflict (id) do nothing`,
+      [c.id, c.first, c.last, c.phone, c.email, tenantId],
     );
   }
 
@@ -76,8 +76,8 @@ export async function seed(): Promise<void> {
       `insert into demo_matters
          (id, reference, contact_id, case_type, incident_date, incident_state, summary,
           treated, fault, police_report, prior_counsel, qualification, score, stage,
-          assigned_to, tags, source, created_at, updated_at)
-       values ($1,$2,$3,$4,$5,'FL',$6,'yes','other',true,'no',$7,$8,$9,$10,$11,'phone',$12,$12)
+          assigned_to, tags, source, created_at, updated_at, tenant_id)
+       values ($1,$2,$3,$4,$5,'FL',$6,'yes','other',true,'no',$7,$8,$9,$10,$11,'phone',$12,$12,$13)
        on conflict (id) do nothing`,
       [
         m.id,
@@ -92,26 +92,28 @@ export async function seed(): Promise<void> {
         m.assigned,
         [type.name, "Phone"],
         created.toISOString(),
+        tenantId,
       ],
     );
 
-    await raw(`insert into demo_parties (matter_id, name, role) values ($1,$2,'client')`, [
+    await raw(`insert into demo_parties (matter_id, name, role, tenant_id) values ($1,$2,'client',$3)`, [
       m.id,
       `${contact.first} ${contact.last}`,
+      tenantId,
     ]);
-    await raw(`insert into demo_parties (matter_id, name, role) values ($1,$2,'adverse')`, [m.id, m.adverse]);
+    await raw(`insert into demo_parties (matter_id, name, role, tenant_id) values ($1,$2,'adverse',$3)`, [m.id, m.adverse, tenantId]);
   }
 
   // A couple of open tasks so the follow up panel is not empty before the first call.
   const attorney = STAFF.find((s) => s.role === "attorney")!;
   await raw(
-    `insert into demo_tasks (matter_id, kind, assigned_to, due_at, priority, note, status, created_at)
-     values ('mat_004','attorney_callback',$1,$2,'normal','Review dog bite intake, owner identified.','open',$3)`,
-    [attorney.id, daysAgo(0, 15).toISOString(), daysAgo(1, 9).toISOString()],
+    `insert into demo_tasks (matter_id, kind, assigned_to, due_at, priority, note, status, created_at, tenant_id)
+     values ('mat_004','attorney_callback',$1,$2,'normal','Review dog bite intake, owner identified.','open',$3,$4)`,
+    [attorney.id, daysAgo(0, 15).toISOString(), daysAgo(1, 9).toISOString(), tenantId],
   );
   await raw(
-    `insert into demo_tasks (matter_id, kind, assigned_to, due_at, priority, note, status, created_at)
-     values ('mat_007','attorney_callback',$1,$2,'normal','Product liability, confirm the heater is preserved.','open',$3)`,
-    [attorney.id, daysAgo(0, 16).toISOString(), daysAgo(0, 8).toISOString()],
+    `insert into demo_tasks (matter_id, kind, assigned_to, due_at, priority, note, status, created_at, tenant_id)
+     values ('mat_007','attorney_callback',$1,$2,'normal','Product liability, confirm the heater is preserved.','open',$3,$4)`,
+    [attorney.id, daysAgo(0, 16).toISOString(), daysAgo(0, 8).toISOString(), tenantId],
   );
 }

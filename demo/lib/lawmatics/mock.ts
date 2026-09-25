@@ -9,6 +9,7 @@
  */
 
 import { q } from "../db";
+import { tenantId } from "../tenancy";
 import { caseTypeById, type Stage } from "../config";
 import type {
   Contact,
@@ -41,8 +42,8 @@ export class MockLawmatics implements LawmaticsGateway {
 
     const rows = await q<{ id: string; first_name: string; last_name: string; phone: string }>(
       `select id, first_name, last_name, phone from demo_contacts
-       where right(regexp_replace(phone, '[^0-9]', '', 'g'), 10) = $1 limit 1`,
-      [digits],
+       where tenant_id = $2 and right(regexp_replace(phone, '[^0-9]', '', 'g'), 10) = $1 limit 1`,
+      [digits, tenantId()],
     );
     if (!rows.length) return null;
     const r = rows[0];
@@ -55,24 +56,24 @@ export class MockLawmatics implements LawmaticsGateway {
 
     const id = `con_${Date.now().toString(36)}`;
     await q(
-      `insert into demo_contacts (id, first_name, last_name, phone, email, source, created_by_agent)
-       values ($1,$2,$3,$4,$5,$6,true)`,
-      [id, input.firstName, input.lastName, input.phone, input.email ?? null, input.source],
+      `insert into demo_contacts (id, first_name, last_name, phone, email, source, created_by_agent, tenant_id)
+       values ($1,$2,$3,$4,$5,$6,true,$7)`,
+      [id, input.firstName, input.lastName, input.phone, input.email ?? null, input.source, tenantId()],
     );
     return { id, firstName: input.firstName, lastName: input.lastName, phone: input.phone, existing: false };
   }
 
   async createMatter(input: MatterInput): Promise<Matter> {
     const id = `mat_${Date.now().toString(36)}`;
-    const [{ n }] = await q<{ n: number }>(`select count(*)::int as n from demo_matters`);
+    const [{ n }] = await q<{ n: number }>(`select count(*)::int as n from demo_matters where tenant_id = $1`, [tenantId()]);
     const reference = `HP-${new Date().getFullYear()}-${String(412 + Number(n) - 8).padStart(4, "0")}`;
 
     await q(
       `insert into demo_matters
          (id, reference, contact_id, case_type, incident_date, incident_state, summary,
           treated, fault, police_report, prior_counsel, qualification, score, stage,
-          assigned_to, tags, source, created_by_agent)
-       values ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,true)`,
+          assigned_to, tags, source, created_by_agent, tenant_id)
+       values ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,true,$18)`,
       [
         id,
         reference,
@@ -91,34 +92,36 @@ export class MockLawmatics implements LawmaticsGateway {
         input.assignedTo,
         input.tags,
         input.source,
+        tenantId(),
       ],
     );
 
     const contact = await q<{ first_name: string; last_name: string }>(
-      `select first_name, last_name from demo_contacts where id = $1`,
-      [input.contactId],
+      `select first_name, last_name from demo_contacts where id = $1 and tenant_id = $2`,
+      [input.contactId, tenantId()],
     );
     if (contact[0]) {
-      await q(`insert into demo_parties (matter_id, name, role) values ($1,$2,'client')`, [
+      await q(`insert into demo_parties (matter_id, name, role, tenant_id) values ($1,$2,'client',$3)`, [
         id,
         `${contact[0].first_name} ${contact[0].last_name}`,
+        tenantId(),
       ]);
     }
     if (input.adverseParty) {
-      await q(`insert into demo_parties (matter_id, name, role) values ($1,$2,'adverse')`, [id, input.adverseParty]);
+      await q(`insert into demo_parties (matter_id, name, role, tenant_id) values ($1,$2,'adverse',$3)`, [id, input.adverseParty, tenantId()]);
     }
 
     return { id, reference, stage: input.stage, assignedTo: input.assignedTo };
   }
 
   async setStage(matterId: string, stage: Stage): Promise<void> {
-    await q(`update demo_matters set stage = $2, updated_at = now() where id = $1`, [matterId, stage]);
+    await q(`update demo_matters set stage = $2, updated_at = now() where id = $1 and tenant_id = $3`, [matterId, stage, tenantId()]);
   }
 
   async createTask(input: TaskInput): Promise<{ taskId: number | string }> {
     const rows = await q<{ id: number }>(
-      `insert into demo_tasks (matter_id, call_id, kind, assigned_to, due_at, priority, note)
-       values ($1,$2,$3,$4,$5,$6,$7) returning id`,
+      `insert into demo_tasks (matter_id, call_id, kind, assigned_to, due_at, priority, note, tenant_id)
+       values ($1,$2,$3,$4,$5,$6,$7,$8) returning id`,
       [
         input.matterId,
         input.callId ?? null,
@@ -127,6 +130,7 @@ export class MockLawmatics implements LawmaticsGateway {
         input.dueAt ? input.dueAt.toISOString() : null,
         input.priority,
         input.note,
+        tenantId(),
       ],
     );
     return { taskId: rows[0]?.id ?? 0 };
@@ -139,7 +143,8 @@ export class MockLawmatics implements LawmaticsGateway {
     const rows = await q<{ name: string; role: string; reference: string | null }>(
       `select p.name, p.role, m.reference from demo_parties p
        left join demo_matters m on m.id = p.matter_id
-       where m.stage not in ('declined','referred') or m.stage is null`,
+       where p.tenant_id = $1 and (m.stage not in ('declined','referred') or m.stage is null)`,
+      [tenantId()],
     );
     // A conflict is any open matter where this name is already a party, on
     // either side. The intake manager decides what it means; the agent only
@@ -181,8 +186,9 @@ export class MockLawmatics implements LawmaticsGateway {
               c.first_name, c.last_name
        from demo_matters m
        left join demo_contacts c on c.id = m.contact_id
+       where m.tenant_id = $2
        order by m.created_at desc limit $1`,
-      [limit],
+      [limit, tenantId()],
     );
 
     return rows.map((r) => {

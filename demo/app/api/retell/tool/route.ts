@@ -9,6 +9,7 @@ import { databaseWarning } from "@/lib/db";
 import { isAfterHours } from "@/lib/config";
 import { logPipeline, touchCall } from "@/lib/ops";
 import { signatureRequired, verifyRetellSignature, type ToolRequest } from "@/lib/retell";
+import { tenantByAgentId, withTenant } from "@/lib/tenancy";
 import { runTool } from "@/lib/tools";
 
 export const runtime = "nodejs";
@@ -45,6 +46,18 @@ async function handle(request: NextRequest) {
 
   const check = verifyRetellSignature(rawBody, request.headers.get("x-retell-signature"), process.env.RETELL_API_KEY);
 
+  // Refuse an unsigned request before touching the database, unless the demo
+  // setting allows it. The signature is what proves the agent id is honest.
+  if (!check.ok && signatureRequired()) {
+    return NextResponse.json({ error: "invalid signature" }, { status: 401 });
+  }
+
+  const tenant = await tenantByAgentId(payload.call.agent_id);
+  if (!tenant) {
+    return NextResponse.json({ error: "unknown agent", agent_id: payload.call.agent_id ?? null }, { status: 404 });
+  }
+
+  return withTenant(tenant, async () => {
   const leadRaw = payload.call.metadata?.lead_id ?? payload.call.retell_llm_dynamic_variables?.lead_id;
   const leadId = Number(leadRaw) > 0 ? Number(leadRaw) : null;
 
@@ -56,10 +69,6 @@ async function handle(request: NextRequest) {
   });
 
   if (!check.ok) {
-    if (signatureRequired()) {
-      await logPipeline(callId, "lead_received", "error", check.reason);
-      return NextResponse.json({ error: "invalid signature" }, { status: 401 });
-    }
     await logPipeline(callId, "lead_received", "warn", "unsigned, allowed by demo setting");
   } else {
     await logPipeline(
@@ -73,6 +82,7 @@ async function handle(request: NextRequest) {
 
   const result = await runTool(payload);
   return NextResponse.json(result);
+  });
 }
 
 export async function GET() {

@@ -36,6 +36,14 @@ the pipeline trace with timings, and a recovered revenue counter.
 Then hand the owner the phone and let them try to break it. The Reset button
 clears the board between attempts.
 
+## The product behind the demo
+
+The public page at `/` is the demo. The product lives at `/app` (a firm's
+own workspace, invite only) and `/admin` (our console: create a customer,
+send the invitation, open their workspace). Every table carries `tenant_id`
+and the Retell webhooks route each call to the workspace that owns the
+agent. Setup for sign-in is in [docs/auth-setup.md](docs/auth-setup.md).
+
 ## Running locally with zero external services
 
 No accounts, no Docker, no network. The database falls back to PGlite, Jobber

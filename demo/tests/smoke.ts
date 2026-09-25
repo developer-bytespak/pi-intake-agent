@@ -13,6 +13,7 @@ process.env.DEMO_FORCE_AFTER_HOURS = "true";
 
 import { rm } from "node:fs/promises";
 import { q, resetDemo } from "../lib/db";
+import { DEMO_TENANT_ID, addMembership, createTenant, getTenant, membershipsForUser, tenantByAgentId, withTenant } from "../lib/tenancy";
 import { runTool } from "../lib/tools";
 import { lawmatics } from "../lib/lawmatics";
 import { parseIncidentDate, yesNo, faultFrom } from "../lib/dates";
@@ -48,6 +49,48 @@ async function main() {
 
   heading("seed");
   await resetDemo();
+  const demo = await getTenant(DEMO_TENANT_ID);
+  if (!demo) throw new Error("bootstrap did not create the demo tenant");
+  expect(await tenantByAgentId(undefined), "a call without an agent id must fall back to the demo tenant");
+  expect(!(await tenantByAgentId("agent_nobody_owns")), "an unknown agent must not resolve to any tenant");
+  await withTenant(demo, scenes);
+  await isolation();
+}
+
+/**
+ * A second firm must never see the demo's contacts or matters, and the demo
+ * must never see theirs. This is the one property tenancy exists for.
+ */
+async function isolation() {
+  heading("tenant isolation");
+  const acme = await createTenant({ name: "Acme Injury Law", retellAgentId: "agent_acme_test" });
+  expect((await tenantByAgentId("agent_acme_test"))?.id === acme.id, "the agent id must resolve to the tenant that owns it");
+
+  const [demoContact] = await q<{ phone: string; last_name: string }>(`select phone, last_name from demo_contacts where tenant_id = $1 limit 1`, [DEMO_TENANT_ID]);
+  const [before] = await q<{ n: number }>(`select count(*)::int as n from demo_calls where tenant_id = $1`, [DEMO_TENANT_ID]);
+
+  await withTenant(acme, async () => {
+    expect((await lawmatics().findContactByPhone(demoContact.phone)) === null, "a demo contact leaked into another tenant");
+    expect((await lawmatics().listMatters(20)).length === 0, "Acme should start with no matters");
+    const conflict = await lawmatics().conflictCheck(`${demoContact.last_name}`);
+    expect(conflict.hit === false, "a demo party must not trip Acme's conflict check");
+    await runTool(call("call_acme_001", "classify_intake", { description: "I was rear ended on the interstate last week" }, "+18135550999"));
+  });
+
+  const [after] = await q<{ n: number }>(`select count(*)::int as n from demo_calls where tenant_id = $1`, [DEMO_TENANT_ID]);
+  expect(after.n === before.n, "an Acme call was counted against the demo tenant");
+  const [acmeCalls] = await q<{ n: number }>(`select count(*)::int as n from demo_calls where tenant_id = $1`, [acme.id]);
+  expect(acmeCalls.n === 1, "Acme should own exactly one call");
+
+  await addMembership({ tenantId: acme.id, email: "Owner@Acme.com", role: "owner" });
+  const mine = await membershipsForUser({ id: "user_clerk_123", email: "owner@acme.com" });
+  expect(mine.length === 1 && mine[0].clerk_user_id === "user_clerk_123" && mine[0].invite_status === "accepted", "first sign-in must claim the membership created for that email");
+  expect((await membershipsForUser({ id: "user_clerk_999", email: "nobody@acme.com" })).length === 0, "an uninvited email must not get a workspace");
+  console.log("isolation and invitation binding hold");
+  console.log("\nAll checks passed.\n");
+}
+
+async function scenes() {
   const [counts] = await q<{ contacts: number; matters: number; parties: number }>(
     `select (select count(*)::int from demo_contacts) as contacts,
             (select count(*)::int from demo_matters)  as matters,
@@ -195,8 +238,6 @@ async function main() {
   );
   console.log(totals);
   expect(totals.qualified === 2 && totals.retainers === 1, "two qualified leads (one scored only), one retainer");
-
-  console.log("\nAll checks passed.\n");
 }
 
 main().catch((err) => {

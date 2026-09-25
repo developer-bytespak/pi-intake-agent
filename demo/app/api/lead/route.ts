@@ -19,6 +19,8 @@ import { databaseWarning, q } from "@/lib/db";
 import { lawmatics } from "@/lib/lawmatics";
 import { sendMessage } from "@/lib/messages";
 import { logCallEvent, logConsent, logPipeline, markLeadContacted, touchCall } from "@/lib/ops";
+import { tenantForRequest } from "@/lib/scope";
+import { DEMO_TENANT_ID, tenant, tenantId, withTenant } from "@/lib/tenancy";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -31,13 +33,21 @@ function e164(raw: string): string | null {
   return null;
 }
 
+/** The agent that dials this workspace's leads back. The demo falls back to the environment. */
+function agentIdFor(): string | undefined {
+  const t = tenant();
+  return t.retell_agent_id ?? (t.id === DEMO_TENANT_ID ? process.env.NEXT_PUBLIC_RETELL_AGENT_ID : undefined);
+}
+
 export function outboundConfigured(): boolean {
-  return Boolean(process.env.RETELL_API_KEY && process.env.RETELL_FROM_NUMBER && process.env.NEXT_PUBLIC_RETELL_AGENT_ID);
+  return Boolean(process.env.RETELL_API_KEY && process.env.RETELL_FROM_NUMBER && agentIdFor());
 }
 
 export async function POST(request: NextRequest) {
   try {
-    return await handle(request);
+    const resolved = await tenantForRequest(request);
+    if (resolved instanceof NextResponse) return resolved;
+    return await withTenant(resolved.tenant, () => handle(request));
   } catch (err) {
     const message = err instanceof Error ? err.message : "unknown error";
     return NextResponse.json({ error: "could not record the lead", detail: message, hint: databaseWarning() }, { status: 500 });
@@ -61,9 +71,9 @@ async function handle(request: NextRequest) {
   }
 
   const [lead] = await q<{ id: number; created_at: string }>(
-    `insert into demo_leads (first_name, last_name, phone, email, description, consent_call, consent_at, status)
-     values ($1,$2,$3,$4,$5,true,now(),'received') returning id, created_at`,
-    [firstName, lastName || "(not given)", phone, email, description],
+    `insert into demo_leads (first_name, last_name, phone, email, description, consent_call, consent_at, status, tenant_id)
+     values ($1,$2,$3,$4,$5,true,now(),'received',$6) returning id, created_at`,
+    [firstName, lastName || "(not given)", phone, email, description, tenantId()],
   );
 
   await logConsent({ leadId: lead.id, kind: "tcpa_form", granted: true, phone });
@@ -83,12 +93,12 @@ async function handle(request: NextRequest) {
       body: JSON.stringify({
         from_number: process.env.RETELL_FROM_NUMBER,
         to_number: phone,
-        override_agent_id: process.env.NEXT_PUBLIC_RETELL_AGENT_ID,
+        override_agent_id: agentIdFor(),
         metadata: { lead_id: String(lead.id), source: "web_form" },
         retell_llm_dynamic_variables: {
-          firm_name: FIRM.name,
-          short_name: FIRM.shortName,
-          callback_number: FIRM.mainNumber,
+          firm_name: tenant().name,
+          short_name: tenant().short_name,
+          callback_number: tenant().main_number ?? FIRM.mainNumber,
           channel: "outbound",
           lead_first_name: firstName,
           lead_description: description,
@@ -99,7 +109,7 @@ async function handle(request: NextRequest) {
     const json = (await res.json().catch(() => ({}))) as { call_id?: string; message?: string };
 
     if (res.ok && json.call_id) {
-      await q(`update demo_leads set status = 'calling', call_id = $2 where id = $1`, [lead.id, json.call_id]);
+      await q(`update demo_leads set status = 'calling', call_id = $2 where id = $1 and tenant_id = $3`, [lead.id, json.call_id, tenantId()]);
       await logPipeline(formCallId, "lead_received", "ok", `dialing ${phone.replace(/\d(?=\d{4})/g, "•")} now`);
       return NextResponse.json({ ok: true, lead_id: lead.id, status: "calling", call_id: json.call_id });
     }
@@ -114,7 +124,7 @@ async function handle(request: NextRequest) {
     to: phone,
     label: "lead",
     channel: "sms",
-    body: `${FIRM.shortName}: hi ${firstName}, we got your message and an attorney's team is calling you now from ${FIRM.mainNumber}. Reply STOP to opt out.`,
+    body: `${tenant().short_name}: hi ${firstName}, we got your message and an attorney's team is calling you now from ${tenant().main_number ?? FIRM.mainNumber}. Reply STOP to opt out.`,
   });
   await lawmatics().createTask({
     matterId: null,
